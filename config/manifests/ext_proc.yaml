@@ -71,7 +71,7 @@ spec:
     spec:
       containers:
       - name: inference-gateway-ext-proc
-        image: registry.k8s.io/gateway-api-inference-extension/epp:v0.2.0-rc.1
+        image: registry.k8s.io/gateway-api-inference-extension/epp:v0.2.0
         imagePullPolicy: IfNotPresent
         args:
         - -poolName
