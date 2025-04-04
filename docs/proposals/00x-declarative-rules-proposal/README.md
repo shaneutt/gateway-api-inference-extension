@@ -29,16 +29,19 @@ This proposal outlines the method to configure inference routing rules.
 
 ## Motivation
 
-Currently, the Gateway API Inference Extension (GIE) uses an `InferencePool` as
-effectively a specialized [Service] for selecting inference endpoints, and an
-`InferenceModel` to advertise available models in the `InferencePool` for the
-scheduler to make decisions on.
+Currently, the Gateway API Inference Extension (GIE) uses an `InferencePool` to serve 2 primary functions:
+- An inference-specific gateway for routing between `InferenceModels` based on specific properties
+  - Currently this is just the `model` body param; a required param as defined by the [OpenAI API spec](https://platform.openai.com/docs/api-reference/chat/create#chat-create-model)
+- A specialized [Service] for selecting inference endpoints, based on the state of the compute pool + request attributes.
+  - This will be referred to as the `scheduler`
 
-In the future, we foresee the need for additional routing rules that extend
-beyond model, and possibly rules that bypass the scheduler entirely (e.g., a
-semantic cache). These rules should be declarative, composable, and chainable,
+
+This proposal focuses on extending the inference-specific gateway tooling, we foresee the need for additional routing rules that extend beyond `model` (such as RAG/system prompts per `InferenceModel`), these rules should be declarative, composable, and chainable,
 making it easier for users to express their intent and clarifying the process
 for developers adding new features.
+
+Additionally we see a potential need for rules that bypass the scheduler entirely (e.g., a semantic cache). It has been discussed to have multiple ext-proc extensions in the request path, which is a valid option. But could lead to heavy overhead as the body must be parsed for each inference-focused extension in the chain. And as context length continues to trend longer, this cost may be exacerbated. Keeping additional routing rules as callouts within the InferencePool implementation allows for a single body parse, and to parallelize any pre-scheduler callouts. 
+ > Example: A callout to validate if the prompt is on [topic](https://huggingface.co/nvidia/llama-3.1-nemoguard-8b-topic-control) and a callout for [content safety](https://huggingface.co/nvidia/llama-3.1-nemoguard-8b-content-safety) could happen in parallel for a single `InferenceModel`.
 
 [Service]:https://kubernetes.io/docs/concepts/services-networking/service/
 
@@ -48,8 +51,7 @@ for developers adding new features.
   declarative--for consumption by the scheduler.
 - Provide chains of routing rules, where sets of rules can be conditional upon
   a topical rule.
-- Make it a little bit easier to develop and test new routing APIs and scheduler
-  implementations.
+- Improve development & testing of new routing APIs.
 
 ## Non-goals
 
@@ -59,26 +61,37 @@ for developers adding new features.
 
 **WIP**
 
-We propose a new API resource named `InferenceRoute` to define rules that
-influence scheduling decisions or override them.
+We propose extending the `InferenceModel` resource, adding an additional field 
+to the `InferenceModel` spec. The working name of this field will be `Rules`.
 
 Key points:
 
-* The `InferenceRoute` provides composable lists of routing rules, this maybe
-  include things like model names.
-* Routing rules can be defined at the top level or chained, enabling conditional
-  dependencies.
-* Each routing rule target matches an `InferencePool`, which can be shared
-  across rules or distinct based on expected support for specific conditions.
-* The `InferenceRoute` now serves as the target for `HTTPRoute` `BackendRefs`
-  instead of the `InferencePool`, providing clearer control and insights into
-  the scheduler's decision-making process, given the applicable pool.
+* `Rules` is a loose term, as it could include pre-scheduler filtration, such as content filtering, or prompt enrichment, such as RAG or system prompt injection.
+* `Rules` provides composable lists of routing rules, `ModelName` could be considered a special-cased rule. But since it is _the_ unique identifier of an inferenceModel, it will remain separate.
+* Routing rules can be defined at the top level or sequential, enabling conditional dependencies or parallel resolution.
+
+
+As a part of this proposal, the core EPP logic will be refactored to have 2 layers:
+- An easily extensible pre-scheduler Rule execution layer
+- A scheduler layer (as directed by the [Scheduler Subsystem Proposal])
+
+The Rule execution layer will ingest configuration as defined by the `Rules` field. And allow intermixing of pre-defined rules, and user generated rules.
+One option for user extension would be to define a plugin interface and allow a user to define that way. However even the builtin [plugin package](https://pkg.go.dev/plugin#section-documentation) suggests against that. Instead, simply user could simply extend the implementation. Allowing for custom built and defined rules would require a very simply mapping API
+
+Looking something like:
 
 ```yaml
-TODO: InferenceRoute
+kind: InferenceModel
+...
+spec:
+  rules:
+  - name: content-safety
+  - name: prompt-injection
+    after: content-safety
+  - name: topical-validation
+    after: content-safety
 ```
-
-TODO: explain more of the advantages of this approach.
+Similar to the [HTTPRouteFilter](https://gateway-api.sigs.k8s.io/reference/spec/#httproutefilter), the RuleType is a simple string, and the `after` field is optional, that allows rules to be executed conditionally.
 
 ## Alternatives Considered
 
@@ -102,15 +115,3 @@ While we see the need for declarative APIs for managing metrics, this proposal
 outlines only their definition, with a detailed proposal deferred to a future
 iteration to maintain focus.
 
-### Extending InferencePool with new rules
-
-We decided not to extend `InferencePool` to keep its API simple. There are two
-distinct roles involved:
-
-- The admin, who defines explicit **Routing Rules** for scheduling
-- The model serving provider, who supplies **Metrics Rules** to refine
-  scheduling.
-
-Since both roles focus on the `InferencePool` as a common point (e.g.,
-`Endpoints`), it should only include attributes that are mutually applicable to
-both.
