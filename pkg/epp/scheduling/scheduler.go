@@ -20,7 +20,7 @@ package scheduling
 import (
 	"context"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	backendmetrics "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/backend/metrics"
@@ -120,6 +120,7 @@ func NewScheduler(datastore Datastore) *Scheduler {
 		datastore:              datastore,
 		criticalRequestFilter:  lowLatencyFilter,
 		sheddableRequestFilter: sheddableRequestFilter,
+		scorers:                []Scorer{NewSessionAffinityScorer(1)},
 	}
 }
 
@@ -127,10 +128,12 @@ type Scheduler struct {
 	datastore              Datastore
 	criticalRequestFilter  Filter
 	sheddableRequestFilter Filter
+	scorers                []Scorer
 }
 
 type Datastore interface {
 	PodGetAll() []backendmetrics.PodMetrics
+	GetPodForSession(sessionId string) *backendmetrics.Pod
 }
 
 // Schedule finds the target pod based on metrics and the requested lora adapter.
@@ -154,7 +157,54 @@ func (s *Scheduler) Schedule(ctx context.Context, req *types.LLMRequest) (target
 	if err != nil || len(pods) == 0 {
 		return nil, fmt.Errorf("failed to apply filter, resulted %v pods, this should never happen: %w", len(pods), err)
 	}
-	logger.V(logutil.DEBUG).Info(fmt.Sprintf("Selecting a random pod from %d candidates: %+v", len(pods), pods))
-	i := rand.Intn(len(pods))
-	return pods[i], nil
+
+	// order filtered pods based on available scorers
+	selectedPod, err := s.scoreTargets(sCtx, pods)
+	if err != nil {
+		return nil, fmt.Errorf("failed to apply scorers: %w", err)
+	}
+
+	return selectedPod, nil
+}
+
+func (s *Scheduler) scoreTargets(ctx *types.Context, pods []*types.PodMetrics) (*types.PodMetrics, error) {
+	podsTotalScore := make(map[*types.PodMetrics]float64)
+
+	// initialize zero score for all pods
+	for _, pod := range pods {
+		podsTotalScore[pod] = 0.0
+	}
+
+	// add scores from all scorers
+	for _, scorer := range s.scorers {
+		scoredPods, err := scorer.ScoreTargets(ctx, pods, s.datastore)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, scoredPod := range scoredPods {
+			podsTotalScore[scoredPod.pod] += scoredPod.score
+		}
+	}
+
+	// select pod with maximum score, if more than one with the max score - use random pods from the list
+	var highestScoreTargets []*types.PodMetrics
+	maxScore := -1.0
+
+	for pod, score := range podsTotalScore {
+		if score > maxScore {
+			maxScore = score
+			highestScoreTargets = []*types.PodMetrics{pod}
+		} else if score == maxScore {
+			highestScoreTargets = append(highestScoreTargets, pod)
+		}
+	}
+
+	// single pod with max score
+	if len(highestScoreTargets) == 1 {
+		return highestScoreTargets[0], nil
+	}
+
+	// select random pod from list of pods with max score
+	return highestScoreTargets[rand.IntN(len(highestScoreTargets))], nil
 }

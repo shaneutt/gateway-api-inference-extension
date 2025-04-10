@@ -65,6 +65,9 @@ type Datastore interface {
 	PodDelete(namespacedName types.NamespacedName)
 	PodResyncAll(ctx context.Context, ctrlClient client.Client, pool *v1alpha2.InferencePool)
 
+	SetPodForSession(sessionId string, pod *backendmetrics.Pod)
+	GetPodForSession(sessionId string) *backendmetrics.Pod
+
 	// Clears the store state, happens when the pool gets deleted.
 	Clear()
 }
@@ -75,6 +78,7 @@ func NewDatastore(parentCtx context.Context, pmf *backendmetrics.PodMetricsFacto
 		poolAndModelsMu: sync.RWMutex{},
 		models:          make(map[string]*v1alpha2.InferenceModel),
 		pods:            &sync.Map{},
+		sessions:        &sync.Map{},
 		pmf:             pmf,
 	}
 	return store
@@ -90,7 +94,9 @@ type datastore struct {
 	models map[string]*v1alpha2.InferenceModel
 	// key: types.NamespacedName, value: backendmetrics.PodMetrics
 	pods *sync.Map
-	pmf  *backendmetrics.PodMetricsFactory
+	// key: session id, value: *backendmetrics.Pod
+	sessions *sync.Map
+	pmf      *backendmetrics.PodMetricsFactory
 }
 
 func (ds *datastore) Clear() {
@@ -289,6 +295,20 @@ func (ds *datastore) PodDelete(namespacedName types.NamespacedName) {
 		pmr := v.(backendmetrics.PodMetrics)
 		pmr.StopRefreshLoop()
 	}
+}
+
+func (ds *datastore) SetPodForSession(sessionId string, pod *backendmetrics.Pod) {
+	ds.sessions.Store(sessionId, pod)
+}
+
+func (ds *datastore) GetPodForSession(sessionId string) *backendmetrics.Pod {
+	if value, ok := ds.sessions.Load(sessionId); ok {
+		if pod, ok := value.(*backendmetrics.Pod); ok {
+			return pod
+		}
+	}
+
+	return nil
 }
 
 func selectorFromInferencePoolSelector(selector map[v1alpha2.LabelKey]v1alpha2.LabelValue) labels.Selector {
