@@ -108,6 +108,8 @@ const (
 	TrailerResponseResponsesComplete StreamRequestState = 7
 )
 
+const SessionIdHeader = "session-id"
+
 func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer) error {
 	ctx := srv.Context()
 	logger := log.FromContext(ctx)
@@ -195,7 +197,16 @@ func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer)
 				} else if header.Key == "content-type" && strings.Contains(value, "text/event-stream") {
 					reqCtx.modelServerStreaming = true
 					loggerTrace.Info("model server is streaming response")
+				} else if header.Key == SessionIdHeader && value != "" {
+					allPods := s.datastore.PodGetAll()
+
+					for _, pod := range allPods {
+						if pod.GetPod().NamespacedName.String() == reqCtx.TargetPod {
+							s.datastore.SetPodForSession(value, pod.GetPod())
+						}
+					}
 				}
+
 			}
 			reqCtx.RequestState = ResponseRecieved
 			reqCtx.respHeaderResp = &extProcPb.ProcessingResponse{

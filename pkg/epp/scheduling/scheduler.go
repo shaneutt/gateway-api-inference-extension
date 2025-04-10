@@ -20,6 +20,7 @@ package scheduling
 import (
 	"context"
 	"fmt"
+	"math/rand/v2"
 	"time"
 
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -89,6 +90,7 @@ type Scheduler struct {
 
 type Datastore interface {
 	PodGetAll() []backendmetrics.PodMetrics
+	GetPodForSession(sessionId string) *backendmetrics.Pod
 }
 
 // Schedule finds the target pod based on metrics and the requested lora adapter.

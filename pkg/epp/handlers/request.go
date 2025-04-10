@@ -62,10 +62,21 @@ func (s *StreamingServer) HandleRequestBody(
 			return reqCtx, errutil.Error{Code: errutil.BadConfiguration, Msg: fmt.Sprintf("error getting target model name for model %v", modelObj.Name)}
 		}
 	}
+
+	// missing session id is OK, currently session id is not generated
+	sessionId := ""
+	if rawSession, ok := requestBodyMap[SessionIdHeader]; ok {
+		sessionId, ok = rawSession.(string)
+		if !ok {
+			return reqCtx, errutil.Error{Code: errutil.BadRequest, Msg: "session id is invalid"}
+		}
+	}
+
 	llmReq := &schedulingtypes.LLMRequest{
 		Model:               model,
 		ResolvedTargetModel: modelName,
 		Critical:            modelObj.Spec.Criticality != nil && *modelObj.Spec.Criticality == v1alpha2.Critical,
+		SessionId:           sessionId,
 	}
 	logger.V(logutil.DEBUG).Info("LLM request assembled", "request", llmReq)
 
