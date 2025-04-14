@@ -90,7 +90,7 @@ type Scheduler struct {
 
 type Datastore interface {
 	PodGetAll() []backendmetrics.PodMetrics
-	GetPodForSession(sessionId string) *backendmetrics.Pod
+	GetPodForSession(SessionID string) *backendmetrics.Pod
 }
 
 // Schedule finds the target pod based on metrics and the requested lora adapter.

@@ -73,7 +73,7 @@ type RequestContext struct {
 	TargetPod                 string
 	TargetEndpoint            string
 	Model                     string
-	SessionId                 string
+	SessionID                 string
 	ResolvedTargetModel       string
 	RequestReceivedTimestamp  time.Time
 	ResponseCompleteTimestamp time.Time
@@ -109,7 +109,7 @@ const (
 	TrailerResponseResponsesComplete StreamRequestState = 7
 )
 
-const SessionIdHeader = "x-session-id"
+const SessionIDHeader = "x-session-id"
 
 func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer) error {
 	ctx := srv.Context()
@@ -205,7 +205,7 @@ func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer)
 
 			for _, pod := range allPods {
 				if pod.GetPod().NamespacedName.String() == reqCtx.TargetPod {
-					s.datastore.SetPodForSession(reqCtx.SessionId, pod.GetPod())
+					s.datastore.SetPodForSession(reqCtx.SessionID, pod.GetPod())
 					break
 				}
 			}
@@ -226,8 +226,8 @@ func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer)
 									},
 									{
 										Header: &configPb.HeaderValue{
-											Key:      SessionIdHeader,
-											RawValue: []byte(reqCtx.SessionId),
+											Key:      SessionIDHeader,
+											RawValue: []byte(reqCtx.SessionID),
 										},
 									},
 								},

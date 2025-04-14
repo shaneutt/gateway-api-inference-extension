@@ -20,14 +20,14 @@ import (
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
 )
 
-type ScoredPod struct {
+type PodScore struct {
 	score float64
 	pod   *types.PodMetrics
 }
 
 // Scorer is the interface that scorers must implement
 type Scorer interface {
-	ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, datastore Datastore, req *types.LLMRequest) ([]ScoredPod, error)
+	ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) ([]PodScore, error)
 }
 
 // sessionAffinity is a routing scorer that routes subsequent
@@ -35,22 +35,24 @@ type Scorer interface {
 // session was sent to, by giving that pod the specified weight and assigning
 // zero score to the rest of the targets
 type SessionAffinityScorer struct {
-	weight float64
+	weight    float64
+	datastore Datastore
 }
 
-func NewSessionAffinityScorer(weight float64) Scorer {
+func NewSessionAffinityScorer(weight float64, datastore Datastore) Scorer {
 	return SessionAffinityScorer{
-		weight: weight,
+		weight:    weight,
+		datastore: datastore,
 	}
 }
 
 // ScoreTargets does the actual scoring of the target pods by the session affinity.
-func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, datastore Datastore, req *types.LLMRequest) ([]ScoredPod, error) {
-	scoredPods := make([]ScoredPod, len(pods))
+func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) ([]PodScore, error) {
+	scoredPods := make([]PodScore, len(pods))
 	selectedPodFullName := ""
 
-	if req.SessionId != "" {
-		selectedPod := datastore.GetPodForSession(req.SessionId)
+	if req.SessionID != "" {
+		selectedPod := s.datastore.GetPodForSession(req.SessionID)
 		if selectedPod != nil {
 			selectedPodFullName = selectedPod.NamespacedName.String()
 		}
@@ -60,8 +62,6 @@ func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.Po
 	for i, pod := range pods {
 		if selectedPodFullName == pod.NamespacedName.String() {
 			scoredPods[i].score = s.weight
-		} else {
-			scoredPods[i].score = 0.0
 		}
 		scoredPods[i].pod = pod
 	}
