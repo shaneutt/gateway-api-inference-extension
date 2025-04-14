@@ -27,7 +27,7 @@ type ScoredPod struct {
 
 // Scorer is the interface that scorers must implement
 type Scorer interface {
-	ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, datastore Datastore) ([]ScoredPod, error)
+	ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, datastore Datastore, req *types.LLMRequest) ([]ScoredPod, error)
 }
 
 // sessionAffinity is a routing scorer that routes subsequent
@@ -39,17 +39,18 @@ type SessionAffinityScorer struct {
 }
 
 func NewSessionAffinityScorer(weight float64) Scorer {
-	return SessionAffinityScorer{}
+	return SessionAffinityScorer{
+		weight: weight,
+	}
 }
 
 // ScoreTargets does the actual scoring of the target pods by the session affinity.
-func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, datastore Datastore) ([]ScoredPod, error) {
-	sessionID := ctx.Req.SessionId
+func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, datastore Datastore, req *types.LLMRequest) ([]ScoredPod, error) {
 	scoredPods := make([]ScoredPod, len(pods))
 	selectedPodFullName := ""
 
-	if sessionID != "" {
-		selectedPod := datastore.GetPodForSession(sessionID)
+	if req.SessionId != "" {
+		selectedPod := datastore.GetPodForSession(req.SessionId)
 		if selectedPod != nil {
 			selectedPodFullName = selectedPod.NamespacedName.String()
 		}
@@ -57,7 +58,7 @@ func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.Po
 
 	// session is not defined - no score for all pods
 	for i, pod := range pods {
-		if selectedPodFullName != "" && selectedPodFullName == pod.NamespacedName.String() {
+		if selectedPodFullName == pod.NamespacedName.String() {
 			scoredPods[i].score = s.weight
 		} else {
 			scoredPods[i].score = 0.0

@@ -73,6 +73,7 @@ type RequestContext struct {
 	TargetPod                 string
 	TargetEndpoint            string
 	Model                     string
+	SessionId                 string
 	ResolvedTargetModel       string
 	RequestReceivedTimestamp  time.Time
 	ResponseCompleteTimestamp time.Time
@@ -108,7 +109,7 @@ const (
 	TrailerResponseResponsesComplete StreamRequestState = 7
 )
 
-const SessionIdHeader = "session-id"
+const SessionIdHeader = "x-session-id"
 
 func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer) error {
 	ctx := srv.Context()
@@ -197,17 +198,18 @@ func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer)
 				} else if header.Key == "content-type" && strings.Contains(value, "text/event-stream") {
 					reqCtx.modelServerStreaming = true
 					loggerTrace.Info("model server is streaming response")
-				} else if header.Key == SessionIdHeader && value != "" {
-					allPods := s.datastore.PodGetAll()
-
-					for _, pod := range allPods {
-						if pod.GetPod().NamespacedName.String() == reqCtx.TargetPod {
-							s.datastore.SetPodForSession(value, pod.GetPod())
-						}
-					}
 				}
-
 			}
+			// Save session is -> pod mapping
+			allPods := s.datastore.PodGetAll()
+
+			for _, pod := range allPods {
+				if pod.GetPod().NamespacedName.String() == reqCtx.TargetPod {
+					s.datastore.SetPodForSession(reqCtx.SessionId, pod.GetPod())
+					break
+				}
+			}
+
 			reqCtx.RequestState = ResponseRecieved
 			reqCtx.respHeaderResp = &extProcPb.ProcessingResponse{
 				Response: &extProcPb.ProcessingResponse_ResponseHeaders{
@@ -220,6 +222,12 @@ func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer)
 											// This is for debugging purpose only.
 											Key:      "x-went-into-resp-headers",
 											RawValue: []byte("true"),
+										},
+									},
+									{
+										Header: &configPb.HeaderValue{
+											Key:      SessionIdHeader,
+											RawValue: []byte(reqCtx.SessionId),
 										},
 									},
 								},
