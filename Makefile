@@ -77,9 +77,9 @@ KIND_CLUSTER ?= kind
 # More info on the awk command:
 # http://linuxcommand.org/lc3_adv_awk.php
 
-.PHONY: help
-help: ## Display this help.
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+# .PHONY: help
+# help: ## Display this help.
+# 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Development
 
@@ -119,9 +119,9 @@ fmt-verify:
 vet: ## Run go vet against code.
 	go vet ./...
 
-.PHONY: test
-test: manifests generate fmt vet envtest image-build ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test $$(go list ./... | grep -v /e2e) -race -coverprofile cover.out
+# .PHONY: test
+# test: manifests generate fmt vet envtest image-build ## Run tests.
+# 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test $$(go list ./... | grep -v /e2e) -race -coverprofile cover.out
 
 .PHONY: test-integration
 test-integration: ## Run tests.
@@ -131,9 +131,9 @@ test-integration: ## Run tests.
 test-e2e: ## Run end-to-end tests against an existing Kubernetes cluster. When using default configuration, the tests need at least 3 available GPUs.
 	MANIFEST_PATH=$(PROJECT_DIR)/$(E2E_MANIFEST_PATH) go test ./test/e2e/epp/ -v -ginkgo.v
 
-.PHONY: lint
-lint: golangci-lint ## Run golangci-lint linter
-	$(GOLANGCI_LINT) run
+# .PHONY: lint
+# lint: golangci-lint ## Run golangci-lint linter
+# 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
@@ -165,15 +165,15 @@ image-local-push: image-local-build
 image-local-load: LOAD=--load ## Build the EPP image for local development and load it in the local Docker registry.
 image-local-load: image-local-build
 
-.PHONY: image-build
-image-build: ## Build the EPP image using Docker Buildx.
-	$(IMAGE_BUILD_CMD) -t $(IMAGE_TAG) \
-		--platform=$(PLATFORMS) \
-		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
-		--build-arg BUILDER_IMAGE=$(BUILDER_IMAGE) \
-		$(PUSH) \
-		$(LOAD) \
-		$(IMAGE_BUILD_EXTRA_OPTS) ./
+# .PHONY: image-build
+# image-build: ## Build the EPP image using Docker Buildx.
+# 	$(IMAGE_BUILD_CMD) -t $(IMAGE_TAG) \
+# 		--platform=$(PLATFORMS) \
+# 		--build-arg BASE_IMAGE=$(BASE_IMAGE) \
+# 		--build-arg BUILDER_IMAGE=$(BUILDER_IMAGE) \
+# 		$(PUSH) \
+# 		$(LOAD) \
+# 		$(IMAGE_BUILD_EXTRA_OPTS) ./
 
 .PHONY: image-push
 image-push: PUSH=--push ## Build the EPP image and push it to $IMAGE_REPO.
@@ -283,13 +283,13 @@ ifndef ignore-not-found
   ignore-not-found = false
 endif
 
-.PHONY: install
-install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | $(KUBECTL) apply -f -
+# .PHONY: install
+# install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+# 	$(KUSTOMIZE) build config/crd | $(KUBECTL) apply -f -
 
-.PHONY: uninstall
-uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+# .PHONY: uninstall
+# uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+# 	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 
 ##@ Helm
