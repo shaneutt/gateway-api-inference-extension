@@ -1,0 +1,6 @@
+{
+  "dev-version": "0.0.2",
+  "dev-registry": "us.icr.io/ibm-hc4ai-operator/gateway-api-inference-extension-dev",
+  "prod-version": "0.0.1",
+  "prod-registry": "us.icr.io/ibm-hc4ai-operator/gateway-api-inference-extension"
+}
