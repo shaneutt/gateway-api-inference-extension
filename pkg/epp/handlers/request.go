@@ -69,9 +69,9 @@ func (s *StreamingServer) HandleRequestBody(
 		Model:               model,
 		ResolvedTargetModel: modelName,
 		Critical:            modelObj.Spec.Criticality != nil && *modelObj.Spec.Criticality == v1alpha2.Critical,
-		SessionId:           reqCtx.SessionId,
+		SessionID:           reqCtx.SessionID,
 	}
-	logger.V(logutil.DEBUG).Info("LLM request assembled", "model", llmReq.Model, "targetModel", llmReq.ResolvedTargetModel, "critical", llmReq.Critical, "sessionId", reqCtx.SessionId)
+	logger.V(logutil.DEBUG).Info("LLM request assembled", "model", llmReq.Model, "targetModel", llmReq.ResolvedTargetModel, "critical", llmReq.Critical, "session id", reqCtx.SessionID)
 
 	var err error
 	// Update target models in the body.
@@ -138,12 +138,12 @@ func (s *StreamingServer) HandleRequestHeaders(ctx context.Context, reqCtx *Requ
 
 	for _, header := range req.RequestHeaders.Headers.GetHeaders() {
 		value := string(header.RawValue)
-		if strings.ToLower(header.Key) == strings.ToLower(SessionIdHeader) && value != "" {
-			reqCtx.SessionId = value
+		if strings.ToLower(header.Key) == strings.ToLower(SessionIDHeader) && value != "" {
+			reqCtx.SessionID = value
 		}
 	}
-	if reqCtx.SessionId == "" {
-		reqCtx.SessionId = uuid.NewString()
+	if reqCtx.SessionID == "" {
+		reqCtx.SessionID = uuid.NewString()
 	}
 
 	// an EoS in the request headers means this request has no body or trailers.

@@ -120,7 +120,7 @@ func NewScheduler(datastore Datastore) *Scheduler {
 		datastore:              datastore,
 		criticalRequestFilter:  lowLatencyFilter,
 		sheddableRequestFilter: sheddableRequestFilter,
-		scorers:                []Scorer{NewSessionAffinityScorer(1)},
+		scorers:                []Scorer{NewSessionAffinityScorer(1, datastore)},
 	}
 }
 
@@ -133,7 +133,7 @@ type Scheduler struct {
 
 type Datastore interface {
 	PodGetAll() []backendmetrics.PodMetrics
-	GetPodForSession(sessionId string) *backendmetrics.Pod
+	GetPodForSession(SessionID string) *backendmetrics.Pod
 }
 
 // Schedule finds the target pod based on metrics and the requested lora adapter.
@@ -158,11 +158,6 @@ func (s *Scheduler) Schedule(ctx context.Context, req *types.LLMRequest) (target
 		return nil, fmt.Errorf("failed to apply filter, resulted %v pods, this should never happen: %w", len(pods), err)
 	}
 
-	// order filtered pods based on available scorers
-	if len(pods) == 0 {
-		return nil, fmt.Errorf("no available pods for request")
-	}
-
 	selectedPod, err := s.scoreTargets(sCtx, pods, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to apply scorers: %w", err)
@@ -183,7 +178,7 @@ func (s *Scheduler) scoreTargets(ctx *types.Context, pods []*types.PodMetrics, r
 
 	// add scores from all scorers
 	for _, scorer := range s.scorers {
-		scoredPods, err := scorer.ScoreTargets(ctx, pods, s.datastore, req)
+		scoredPods, err := scorer.ScoreTargets(ctx, pods, req)
 		if err != nil {
 			logger.Info(">>> In scoreTargets, score targets returned error", "error", err)
 			return nil, err

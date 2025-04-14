@@ -33,7 +33,7 @@ type LLMRequest struct {
 	// Resolved target model is the final target model after traffic split.
 	ResolvedTargetModel string
 	Critical            bool
-	SessionId           string
+	SessionID           string
 }
 
 // Context holds contextual information during a scheduling operation.
