@@ -21,9 +21,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	extProcPb "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
+	"github.com/google/uuid"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/gateway-api-inference-extension/api/v1alpha2"
 	schedulingtypes "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
@@ -63,22 +65,13 @@ func (s *StreamingServer) HandleRequestBody(
 		}
 	}
 
-	// missing session id is OK, currently session id is not generated
-	sessionId := ""
-	if rawSession, ok := requestBodyMap[SessionIdHeader]; ok {
-		sessionId, ok = rawSession.(string)
-		if !ok {
-			return reqCtx, errutil.Error{Code: errutil.BadRequest, Msg: "session id is invalid"}
-		}
-	}
-
 	llmReq := &schedulingtypes.LLMRequest{
 		Model:               model,
 		ResolvedTargetModel: modelName,
 		Critical:            modelObj.Spec.Criticality != nil && *modelObj.Spec.Criticality == v1alpha2.Critical,
-		SessionId:           sessionId,
+		SessionId:           reqCtx.SessionId,
 	}
-	logger.V(logutil.DEBUG).Info("LLM request assembled", "model", llmReq.Model, "targetModel", llmReq.ResolvedTargetModel, "critical", llmReq.Critical, "sessionId", sessionId)
+	logger.V(logutil.DEBUG).Info("LLM request assembled", "model", llmReq.Model, "targetModel", llmReq.ResolvedTargetModel, "critical", llmReq.Critical, "sessionId", reqCtx.SessionId)
 
 	var err error
 	// Update target models in the body.
@@ -142,6 +135,16 @@ func (s *StreamingServer) HandleRequestBody(
 
 func (s *StreamingServer) HandleRequestHeaders(ctx context.Context, reqCtx *RequestContext, req *extProcPb.ProcessingRequest_RequestHeaders) error {
 	reqCtx.RequestReceivedTimestamp = time.Now()
+
+	for _, header := range req.RequestHeaders.Headers.GetHeaders() {
+		value := string(header.RawValue)
+		if strings.ToLower(header.Key) == strings.ToLower(SessionIdHeader) && value != "" {
+			reqCtx.SessionId = value
+		}
+	}
+	if reqCtx.SessionId == "" {
+		reqCtx.SessionId = uuid.NewString()
+	}
 
 	// an EoS in the request headers means this request has no body or trailers.
 	if req.RequestHeaders.EndOfStream {

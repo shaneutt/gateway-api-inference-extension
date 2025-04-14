@@ -159,7 +159,11 @@ func (s *Scheduler) Schedule(ctx context.Context, req *types.LLMRequest) (target
 	}
 
 	// order filtered pods based on available scorers
-	selectedPod, err := s.scoreTargets(sCtx, pods)
+	if len(pods) == 0 {
+		return nil, fmt.Errorf("no available pods for request")
+	}
+
+	selectedPod, err := s.scoreTargets(sCtx, pods, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to apply scorers: %w", err)
 	}
@@ -167,7 +171,9 @@ func (s *Scheduler) Schedule(ctx context.Context, req *types.LLMRequest) (target
 	return selectedPod, nil
 }
 
-func (s *Scheduler) scoreTargets(ctx *types.Context, pods []*types.PodMetrics) (*types.PodMetrics, error) {
+func (s *Scheduler) scoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) (*types.PodMetrics, error) {
+	logger := log.FromContext(ctx)
+
 	podsTotalScore := make(map[*types.PodMetrics]float64)
 
 	// initialize zero score for all pods
@@ -177,8 +183,9 @@ func (s *Scheduler) scoreTargets(ctx *types.Context, pods []*types.PodMetrics) (
 
 	// add scores from all scorers
 	for _, scorer := range s.scorers {
-		scoredPods, err := scorer.ScoreTargets(ctx, pods, s.datastore)
+		scoredPods, err := scorer.ScoreTargets(ctx, pods, s.datastore, req)
 		if err != nil {
+			logger.Info(">>> In scoreTargets, score targets returned error", "error", err)
 			return nil, err
 		}
 
