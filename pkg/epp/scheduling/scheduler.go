@@ -185,7 +185,7 @@ func (s *Scheduler) scoreTargets(ctx *types.Context, pods []*types.PodMetrics, r
 		}
 
 		for _, scoredPod := range scoredPods {
-			podsTotalScore[scoredPod.pod] += scoredPod.score
+			podsTotalScore[scoredPod.Pod] += scoredPod.Score
 		}
 	}
 
