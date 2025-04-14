@@ -21,8 +21,8 @@ import (
 )
 
 type PodScore struct {
-	score float64
-	pod   *types.PodMetrics
+	Score float64
+	Pod   *types.PodMetrics
 }
 
 // Scorer is the interface that scorers must implement
@@ -61,9 +61,9 @@ func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.Po
 	// session is not defined - no score for all pods
 	for i, pod := range pods {
 		if selectedPodFullName == pod.NamespacedName.String() {
-			scoredPods[i].score = s.weight
+			scoredPods[i].Score = s.weight
 		}
-		scoredPods[i].pod = pod
+		scoredPods[i].Pod = pod
 	}
 
 	return scoredPods, nil
