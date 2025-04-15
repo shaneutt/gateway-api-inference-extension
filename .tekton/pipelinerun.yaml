@@ -144,7 +144,7 @@ spec:
         taskRef:
           name: go-build-task
         runAfter:
-          - go-test
+          - go-lint
         workspaces:
           - name: source
             workspace: source
