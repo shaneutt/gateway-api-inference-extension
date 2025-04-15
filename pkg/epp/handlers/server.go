@@ -109,7 +109,7 @@ const (
 	TrailerResponseResponsesComplete StreamRequestState = 7
 )
 
-const SessionIDHeader = "x-session-id"
+const SessionIDHeader = "Session-ID"
 
 func (s *StreamingServer) Process(srv extProcPb.ExternalProcessor_ProcessServer) error {
 	ctx := srv.Context()
