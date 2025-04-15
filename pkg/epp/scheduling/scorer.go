@@ -17,6 +17,9 @@ limitations under the License.
 package scheduling
 
 import (
+	"math/rand/v2"
+
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
 )
 
@@ -30,41 +33,62 @@ type Scorer interface {
 	ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) ([]PodScore, error)
 }
 
-// sessionAffinity is a routing scorer that routes subsequent
-// requests in a session to the same pod as the first request in the
-// session was sent to, by giving that pod the specified weight and assigning
-// zero score to the rest of the targets
-type SessionAffinityScorer struct {
-	weight    float64
-	datastore Datastore
+// Scorer is the interface that scorers must implement
+type ScorerMng struct {
+	scorers []Scorer
 }
 
-func NewSessionAffinityScorer(weight float64, datastore Datastore) Scorer {
-	return SessionAffinityScorer{
-		weight:    weight,
-		datastore: datastore,
+func NewScorerMng() *ScorerMng {
+	return &ScorerMng{
+		scorers: make([]Scorer, 0),
 	}
 }
 
-// ScoreTargets does the actual scoring of the target pods by the session affinity.
-func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) ([]PodScore, error) {
-	scoredPods := make([]PodScore, len(pods))
-	selectedPodFullName := ""
+func (sm *ScorerMng) addScorer(scorer Scorer) {
+	sm.scorers = append(sm.scorers, scorer)
+}
 
-	if req.SessionID != "" {
-		selectedPod := s.datastore.GetPodForSession(req.SessionID)
-		if selectedPod != nil {
-			selectedPodFullName = selectedPod.NamespacedName.String()
+func (sm *ScorerMng) scoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) (*types.PodMetrics, error) {
+	logger := log.FromContext(ctx)
+
+	podsTotalScore := make(map[*types.PodMetrics]float64)
+
+	// initialize zero score for all pods
+	for _, pod := range pods {
+		podsTotalScore[pod] = 0.0
+	}
+
+	// add scores from all scorers
+	for _, scorer := range sm.scorers {
+		scoredPods, err := scorer.ScoreTargets(ctx, pods, req)
+		if err != nil {
+			logger.Info(">>> In scoreTargets, score targets returned error", "error", err)
+			return nil, err
+		}
+
+		for _, scoredPod := range scoredPods {
+			podsTotalScore[scoredPod.Pod] += scoredPod.Score
 		}
 	}
 
-	// session is not defined - no score for all pods
-	for i, pod := range pods {
-		if selectedPodFullName == pod.NamespacedName.String() {
-			scoredPods[i].Score = s.weight
+	// select pod with maximum score, if more than one with the max score - use random pods from the list
+	var highestScoreTargets []*types.PodMetrics
+	maxScore := -1.0
+
+	for pod, score := range podsTotalScore {
+		if score > maxScore {
+			maxScore = score
+			highestScoreTargets = []*types.PodMetrics{pod}
+		} else if score == maxScore {
+			highestScoreTargets = append(highestScoreTargets, pod)
 		}
-		scoredPods[i].Pod = pod
 	}
 
-	return scoredPods, nil
+	// single pod with max score
+	if len(highestScoreTargets) == 1 {
+		return highestScoreTargets[0], nil
+	}
+
+	// select random pod from list of pods with max score
+	return highestScoreTargets[rand.IntN(len(highestScoreTargets))], nil
 }
