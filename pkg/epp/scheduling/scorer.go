@@ -30,7 +30,7 @@ type PodScore struct {
 
 // Scorer is the interface that scorers must implement
 type Scorer interface {
-	ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) ([]PodScore, error)
+	ScoreTargets(ctx *types.Context, pods []*types.PodMetrics) ([]PodScore, error)
 }
 
 // Scorer is the interface that scorers must implement
@@ -48,7 +48,7 @@ func (sm *ScorerMng) addScorer(scorer Scorer) {
 	sm.scorers = append(sm.scorers, scorer)
 }
 
-func (sm *ScorerMng) scoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) (*types.PodMetrics, error) {
+func (sm *ScorerMng) scoreTargets(ctx *types.Context, pods []*types.PodMetrics) (*types.PodMetrics, error) {
 	logger := log.FromContext(ctx)
 
 	podsTotalScore := make(map[*types.PodMetrics]float64)
@@ -60,7 +60,7 @@ func (sm *ScorerMng) scoreTargets(ctx *types.Context, pods []*types.PodMetrics, 
 
 	// add scores from all scorers
 	for _, scorer := range sm.scorers {
-		scoredPods, err := scorer.ScoreTargets(ctx, pods, req)
+		scoredPods, err := scorer.ScoreTargets(ctx, pods)
 		if err != nil {
 			logger.Info(">>> In scoreTargets, score targets returned error", "error", err)
 			return nil, err

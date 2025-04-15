@@ -16,6 +16,7 @@ limitations under the License.
 package scheduling
 
 import (
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
 )
 
@@ -36,12 +37,14 @@ func NewSessionAffinityScorer(weight float64, datastore Datastore) Scorer {
 }
 
 // ScoreTargets does the actual scoring of the target pods by the session affinity.
-func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.PodMetrics, req *types.LLMRequest) ([]PodScore, error) {
+func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.PodMetrics) ([]PodScore, error) {
+	logger := log.FromContext(ctx)
+
 	scoredPods := make([]PodScore, len(pods))
 	selectedPodFullName := ""
 
-	if req.SessionID != "" {
-		selectedPod := s.datastore.GetPodForSession(req.SessionID)
+	if ctx.Req.SessionID != "" {
+		selectedPod := s.datastore.GetPodForSession(ctx.Req.SessionID)
 		if selectedPod != nil {
 			selectedPodFullName = selectedPod.NamespacedName.String()
 		}
@@ -50,6 +53,7 @@ func (s SessionAffinityScorer) ScoreTargets(ctx *types.Context, pods []*types.Po
 	// session is not defined - no score for all pods
 	for i, pod := range pods {
 		if selectedPodFullName == pod.NamespacedName.String() {
+			logger.Info("Pod found for session", "session id", ctx.Req.SessionID, "pod", pod.NamespacedName.String())
 			scoredPods[i].Score = s.weight
 		}
 		scoredPods[i].Pod = pod
