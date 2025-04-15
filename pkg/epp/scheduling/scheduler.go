@@ -160,7 +160,7 @@ func (s *Scheduler) Schedule(ctx context.Context, req *types.LLMRequest) (target
 		return nil, fmt.Errorf("failed to apply filter, resulted %v pods, this should never happen: %w", len(pods), err)
 	}
 
-	selectedPod, err := s.scorerMng.scoreTargets(sCtx, pods, req)
+	selectedPod, err := s.scorerMng.scoreTargets(sCtx, pods)
 	if err != nil {
 		return nil, fmt.Errorf("failed to apply scorers: %w", err)
 	}
