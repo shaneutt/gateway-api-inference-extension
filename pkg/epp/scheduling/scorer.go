@@ -73,14 +73,21 @@ func (sm *ScorerMng) scoreTargets(ctx *types.Context, pods []*types.PodMetrics) 
 
 	// select pod with maximum score, if more than one with the max score - use random pods from the list
 	var highestScoreTargets []*types.PodMetrics
-	maxScore := -1.0
+	// score weights cound be negative
+	maxScore := 0.0
+	isFirst := true
 
 	for pod, score := range podsTotalScore {
-		if score > maxScore {
+		if isFirst {
 			maxScore = score
 			highestScoreTargets = []*types.PodMetrics{pod}
-		} else if score == maxScore {
-			highestScoreTargets = append(highestScoreTargets, pod)
+		} else {
+			if score > maxScore {
+				maxScore = score
+				highestScoreTargets = []*types.PodMetrics{pod}
+			} else if score == maxScore {
+				highestScoreTargets = append(highestScoreTargets, pod)
+			}
 		}
 	}
 
