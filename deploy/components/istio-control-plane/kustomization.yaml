@@ -1,0 +1,15 @@
+# ------------------------------------------------------------------------------
+# Istio Control Plane
+#
+# This deploys an Istio control-plane for the entire cluster. This enables the
+# creation of Gateways.
+# ------------------------------------------------------------------------------
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: istio-system
+namePrefix: istio-
+
+resources:
+- namespaces.yaml
+- control-plane.yaml
