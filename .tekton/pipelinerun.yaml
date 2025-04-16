@@ -19,7 +19,6 @@ spec:
       fsGroup: 0
     imagePullSecrets:
       - name: icr-secret
-      - name: quay-secret
   params:
     - name: runOptional
       value: "true"
