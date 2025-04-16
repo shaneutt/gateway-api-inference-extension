@@ -10,7 +10,7 @@ spec:
     - name: source
   steps:
     - name: run-lint
-      image: us.icr.io/ibm-hc4ai-operator/golangci-lint:v1.64.8
+      image: quay.io/vllm-d/golangci-lint:v1.64.8
       imagePullPolicy: IfNotPresent
       script: |
         #!/bin/bash

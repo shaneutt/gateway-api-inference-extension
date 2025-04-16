@@ -16,9 +16,9 @@ Each repo includes a `.version.json` file at its root. This file controls:
 ```json
 {
   "dev-version": "0.0.5",
-  "dev-registry": "us.icr.io/ibm-hc4ai-operator/<your project name>-dev",
+  "dev-registry": "quay.io/vllm-d/<your project name>-dev",
   "prod-version": "0.0.4",
-  "prod-registry": "us.icr.io/ibm-hc4ai-operator/<your project name>"
+  "prod-registry": "quay.io/vllm-d/<your project name>"
 }
 ```
 
