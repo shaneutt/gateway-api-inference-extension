@@ -17,6 +17,7 @@ limitations under the License.
 package scheduling
 
 import (
+	"fmt"
 	"math/rand/v2"
 
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -52,22 +53,32 @@ func (sm *ScorerMng) scoreTargets(ctx *types.Context, pods []*types.PodMetrics) 
 	logger := log.FromContext(ctx)
 
 	podsTotalScore := make(map[*types.PodMetrics]float64)
+	validPods := make([]*types.PodMetrics, 0)
 
-	// initialize zero score for all pods
+	// initialize zero score for all pods + check that pods are valid
 	for _, pod := range pods {
-		podsTotalScore[pod] = 0.0
+		if pod == nil || pod.Pod == nil || pod.Metrics == nil {
+			logger.Info("Invalid/empty pod skipped in scoring process")
+		} else {
+			validPods = append(validPods, pod)
+			podsTotalScore[pod] = 0.0
+		}
+	}
+
+	if len(validPods) == 0 {
+		return nil, fmt.Errorf("Empty list of valid pods to score")
 	}
 
 	// add scores from all scorers
 	for _, scorer := range sm.scorers {
-		scoredPods, err := scorer.ScoreTargets(ctx, pods)
+		scoredPods, err := scorer.ScoreTargets(ctx, validPods)
 		if err != nil {
-			logger.Info(">>> In scoreTargets, score targets returned error", "error", err)
-			return nil, err
-		}
-
-		for _, scoredPod := range scoredPods {
-			podsTotalScore[scoredPod.Pod] += scoredPod.Score
+			// in case scorer failed - don't use it in the total score, but continue to other scorers
+			logger.Error(err, "Score targets returned error in scorer")
+		} else {
+			for _, scoredPod := range scoredPods {
+				podsTotalScore[scoredPod.Pod] += scoredPod.Score
+			}
 		}
 	}
 
