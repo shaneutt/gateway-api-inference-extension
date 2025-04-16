@@ -3,7 +3,7 @@ FROM quay.io/projectquay/golang:1.24 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
-ENV GOPROXY=https://goproxy.io,direct
+# ENV GOPROXY=https://goproxy.io,direct
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
