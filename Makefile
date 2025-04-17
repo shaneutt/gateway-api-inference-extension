@@ -3,6 +3,9 @@ IMG ?= controller:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.31.0
 
+TARGETOS ?= linux
+TARGETARCH ?= amd64
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -474,13 +477,13 @@ buildah-build: check-builder load-version-json ## Build and push image (multi-ar
 	fi
 
 .PHONY:	image-build
-image-build: check-container-tool load-version-json ## Build Docker image ## Build Docker image using $(CONTAINER_TOOL)
-	@printf "\033[33;1m==== Building Docker image $(IMG) ====\033[0m\n"
+image-build: check-container-tool load-version-json ## Build container image using $(CONTAINER_TOOL)
+	@printf "\033[33;1m==== Building container image $(IMG) ====\033[0m\n"
 	$(CONTAINER_TOOL) build --build-arg TARGETOS=$(TARGETOS) --build-arg TARGETARCH=$(TARGETARCH) -t $(IMG) .
 
 .PHONY: image-push
-image-push: check-container-tool load-version-json ## Push Docker image $(IMG) to registry
-	@printf "\033[33;1m==== Pushing Docker image $(IMG) ====\033[0m\n"
+image-push: check-container-tool load-version-json ## Push container image $(IMG) to registry
+	@printf "\033[33;1m==== Pushing container image $(IMG) ====\033[0m\n"
 	$(CONTAINER_TOOL) push $(IMG)
 
 ##@ Install/Uninstall Targets
