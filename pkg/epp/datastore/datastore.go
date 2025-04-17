@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -34,7 +35,9 @@ import (
 )
 
 const (
-	ModelNameIndexKey = "spec.modelName"
+	ModelNameIndexKey              = "spec.modelName"
+	sessionKeepAliveTime           = 60 * time.Minute // How long should an idle session be kept alive
+	sessionKeepAliveCheckFrequency = 15 * time.Minute // How often to check for overly idle sessions
 )
 
 var (
@@ -65,6 +68,9 @@ type Datastore interface {
 	PodDelete(namespacedName types.NamespacedName)
 	PodResyncAll(ctx context.Context, ctrlClient client.Client, pool *v1alpha2.InferencePool)
 
+	SetPodForSession(sessionID string, pod *backendmetrics.Pod)
+	GetPodForSession(sessionID string) *backendmetrics.Pod
+
 	// Clears the store state, happens when the pool gets deleted.
 	Clear()
 }
@@ -75,8 +81,12 @@ func NewDatastore(parentCtx context.Context, pmf *backendmetrics.PodMetricsFacto
 		poolAndModelsMu: sync.RWMutex{},
 		models:          make(map[string]*v1alpha2.InferenceModel),
 		pods:            &sync.Map{},
+		sessions:        &sync.Map{},
 		pmf:             pmf,
 	}
+
+	go store.cleanupSessions(sessionKeepAliveCheckFrequency, sessionKeepAliveTime, parentCtx)
+
 	return store
 }
 
@@ -90,7 +100,9 @@ type datastore struct {
 	models map[string]*v1alpha2.InferenceModel
 	// key: types.NamespacedName, value: backendmetrics.PodMetrics
 	pods *sync.Map
-	pmf  *backendmetrics.PodMetricsFactory
+	// key: session id, value: *backendmetrics.Pod
+	sessions *sync.Map
+	pmf      *backendmetrics.PodMetricsFactory
 }
 
 func (ds *datastore) Clear() {
@@ -289,6 +301,61 @@ func (ds *datastore) PodDelete(namespacedName types.NamespacedName) {
 		pmr := v.(backendmetrics.PodMetrics)
 		pmr.StopRefreshLoop()
 	}
+}
+
+type sessionInfo struct {
+	pod *backendmetrics.Pod
+	lru time.Time
+}
+
+// cleanup Cleans up the set of stored session information by removing information
+// of old sessions.
+func (ds *datastore) cleanupSessions(keepAliveCheckFrequency time.Duration, sessionKeepAlive time.Duration, ctx context.Context) {
+	logger := log.FromContext(ctx)
+
+	logger.Info("Session-affinity cleanup started")
+	ticker := time.NewTicker(keepAliveCheckFrequency)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Info("Session-affinity cleanup stopped:")
+			return
+		case now := <-ticker.C:
+			logger.Info("Session affinity checking")
+			ds.sessions.Range(
+				func(sessionID any, rawSessionInfo any) bool {
+					if sessionInfo, ok := rawSessionInfo.(*sessionInfo); ok {
+						if now.Sub(sessionInfo.lru) > sessionKeepAlive {
+							// Session is stale, remove it
+							ds.sessions.Delete(sessionID)
+						}
+					} else {
+						// Value is not of the correct type, remove it
+						ds.sessions.Delete(sessionID)
+					}
+					return true
+				})
+		}
+	}
+}
+
+func (ds *datastore) SetPodForSession(sessionID string, pod *backendmetrics.Pod) {
+	ds.sessions.Store(sessionID, &sessionInfo{
+		pod: pod,
+		lru: time.Now(),
+	})
+}
+
+func (ds *datastore) GetPodForSession(sessionID string) *backendmetrics.Pod {
+	if value, ok := ds.sessions.Load(sessionID); ok {
+		if sessionInfo, ok := value.(*sessionInfo); ok {
+			return sessionInfo.pod
+		}
+	}
+
+	return nil
 }
 
 func selectorFromInferencePoolSelector(selector map[v1alpha2.LabelKey]v1alpha2.LabelValue) labels.Selector {

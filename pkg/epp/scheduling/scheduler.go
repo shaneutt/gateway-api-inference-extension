@@ -20,7 +20,6 @@ package scheduling
 import (
 	"context"
 	"fmt"
-	"math/rand"
 
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	backendmetrics "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/backend/metrics"
@@ -116,10 +115,14 @@ var (
 )
 
 func NewScheduler(datastore Datastore) *Scheduler {
+	sMng := NewScorerMng()
+	sMng.addScorer(NewSessionAffinityScorer(1, datastore))
+
 	return &Scheduler{
 		datastore:              datastore,
 		criticalRequestFilter:  lowLatencyFilter,
 		sheddableRequestFilter: sheddableRequestFilter,
+		scorerMng:              sMng,
 	}
 }
 
@@ -127,10 +130,12 @@ type Scheduler struct {
 	datastore              Datastore
 	criticalRequestFilter  Filter
 	sheddableRequestFilter Filter
+	scorerMng              *ScorerMng
 }
 
 type Datastore interface {
 	PodGetAll() []backendmetrics.PodMetrics
+	GetPodForSession(SessionID string) *backendmetrics.Pod
 }
 
 // Schedule finds the target pod based on metrics and the requested lora adapter.
@@ -154,7 +159,11 @@ func (s *Scheduler) Schedule(ctx context.Context, req *types.LLMRequest) (target
 	if err != nil || len(pods) == 0 {
 		return nil, fmt.Errorf("failed to apply filter, resulted %v pods, this should never happen: %w", len(pods), err)
 	}
-	logger.V(logutil.DEBUG).Info(fmt.Sprintf("Selecting a random pod from %d candidates: %+v", len(pods), pods))
-	i := rand.Intn(len(pods))
-	return pods[i], nil
+
+	selectedPod, err := s.scorerMng.scoreTargets(sCtx, pods)
+	if err != nil {
+		return nil, fmt.Errorf("failed to apply scorers: %w", err)
+	}
+
+	return selectedPod, nil
 }

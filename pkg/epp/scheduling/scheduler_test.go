@@ -230,3 +230,7 @@ func (fds *fakeDataStore) PodGetAll() []backendmetrics.PodMetrics {
 	}
 	return pm
 }
+
+func (fds *fakeDataStore) GetPodForSession(sessionID string) *backendmetrics.Pod {
+	return nil
+}
