@@ -513,6 +513,8 @@ uninstall-docker: check-container-tool ## Uninstall app from $(CONTAINER_TOOL)
 
 ### Kubernetes Targets (kubectl)
 
+# TODO: currently incorrect because it depends on OpenShift APIs.
+#  See: https://github.com/neuralmagic/gateway-api-inference-extension/issues/14
 .PHONY: install-k8s
 install-k8s: check-kubectl check-kustomize check-envsubst ## Install on Kubernetes
 	export PROJECT_NAME=${PROJECT_NAME}
@@ -522,7 +524,7 @@ install-k8s: check-kubectl check-kustomize check-envsubst ## Install on Kubernet
 	kubectl config set-context --current --namespace=$(NAMESPACE)
 	@echo "Deploying resources from deploy/ ..."
 	# Build the kustomization from deploy, substitute variables, and apply the YAML
-	kustomize build deploy | envsubst | kubectl apply -f -
+	kustomize build deploy/environments/openshift | envsubst | kubectl apply -f -
 	@echo "Waiting for pod to become ready..."
 	sleep 5
 	@POD=$$(kubectl get pod -l app=$(PROJECT_NAME)-statefulset -o jsonpath='{.items[0].metadata.name}'); \
@@ -530,12 +532,14 @@ install-k8s: check-kubectl check-kustomize check-envsubst ## Install on Kubernet
 	echo "To use the app, run:"; \
 	echo "alias $(PROJECT_NAME)='kubectl exec -n $(NAMESPACE) -it $$POD -- /app/$(PROJECT_NAME)'"
 	
+# TODO: currently incorrect because it depends on OpenShift APIs.
+#  See: https://github.com/neuralmagic/gateway-api-inference-extension/issues/14
 .PHONY: uninstall-k8s
 uninstall-k8s: check-kubectl check-kustomize check-envsubst ## Uninstall from Kubernetes
 	export PROJECT_NAME=${PROJECT_NAME}
 	export NAMESPACE=${NAMESPACE}
 	@echo "Removing resources from Kubernetes..."
-	kustomize build deploy | envsubst | kubectl delete --force -f - || true
+	kustomize build deploy/environments/openshift | envsubst | kubectl delete --force -f - || true
 	POD=$$(kubectl get pod -l app=$(PROJECT_NAME)-statefulset -o jsonpath='{.items[0].metadata.name}'); \
 	echo "Deleting pod: $$POD"; \
 	kubectl delete pod "$$POD" --force --grace-period=0 || true; \
@@ -550,7 +554,7 @@ install-openshift: check-kubectl check-kustomize check-envsubst ## Install on Op
 	kubectl create namespace $(NAMESPACE) 2>/dev/null || true
 	@echo "Deploying common resources from deploy/ ..."
 	# Build and substitute the base manifests from deploy, then apply them
-	kustomize build deploy | envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' | kubectl apply -n $(NAMESPACE) -f -
+	kustomize build deploy/environments/openshift | envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' | kubectl apply -n $(NAMESPACE) -f -
 	@echo "Waiting for pod to become ready..."
 	sleep 5
 	@POD=$$(kubectl get pod -l app=$(PROJECT_NAME)-statefulset -n $(NAMESPACE) -o jsonpath='{.items[0].metadata.name}'); \
@@ -561,7 +565,7 @@ install-openshift: check-kubectl check-kustomize check-envsubst ## Install on Op
 .PHONY: uninstall-openshift
 uninstall-openshift: check-kubectl check-kustomize check-envsubst ## Uninstall from OpenShift
 	@echo "Removing resources from OpenShift..."
-	kustomize build deploy | envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' | kubectl delete --force -f - || true
+	kustomize build deploy/environments/openshift | envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' | kubectl delete --force -f - || true
 	# @if kubectl api-resources --api-group=route.openshift.io | grep -q Route; then \
 	#   envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' < deploy/openshift/route.yaml | kubectl delete --force -f - || true; \
 	# fi
@@ -575,12 +579,12 @@ uninstall-openshift: check-kubectl check-kustomize check-envsubst ## Uninstall f
 .PHONY: install-rbac
 install-rbac: check-kubectl check-kustomize check-envsubst ## Install RBAC
 	@echo "Applying RBAC configuration from deploy/rbac..."
-	kustomize build deploy/rbac | envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' | kubectl apply -f -
+	kustomize build deploy/environments/openshift/rbac | envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' | kubectl apply -f -
 
 .PHONY: uninstall-rbac
 uninstall-rbac: check-kubectl check-kustomize check-envsubst ## Uninstall RBAC
 	@echo "Removing RBAC configuration from deploy/rbac..."
-	kustomize build deploy/rbac | envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' | kubectl delete -f - || true
+	kustomize build deploy/environments/openshift/rbac | envsubst '$$PROJECT_NAME $$NAMESPACE $$IMAGE_TAG_BASE $$VERSION' | kubectl delete -f - || true
 
 
 ##@ Version Extraction
