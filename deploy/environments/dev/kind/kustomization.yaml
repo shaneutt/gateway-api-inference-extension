@@ -14,7 +14,7 @@ kind: Kustomization
 
 resources:
 - services.yaml
-- ../../../components/istio-control-plane/
+- ../../../components/kgateway-control-plane/
 - ../../../components/vllm-sim/
 - ../../../components/inference-gateway/
 
