@@ -762,11 +762,11 @@ EPP_TAG ?= main
 environment.dev.kubernetes: check-kubectl check-kustomize check-envsubst
 	@echo "INFO: checking required vars"
 ifndef NAMESPACE
-	$(error "Error: NAMESPACE is required but not set)
+	$(error "Error: NAMESPACE is required but not set")
 endif
 	export NAMESPACE=$(NAMESPACE)
 ifndef REGISTRY_SECRET
-	$(error "Error: REGISTRY_SECRET is required but not set)
+	$(error "Error: REGISTRY_SECRET is required but not set")
 endif
 	export REGISTRY_SECRET=$(REGISTRY_SECRET)
 	export VLLM_SIM_IMAGE=$(VLLM_SIM_IMAGE)
@@ -791,7 +791,7 @@ endif
 .PHONY: clean.environment.dev.kubernetes
 clean.environment.dev.kubernetes: check-kubectl check-kustomize check-envsubst
 ifndef NAMESPACE
-	$(error "Error: NAMESPACE is required but not set)
+	$(error "Error: NAMESPACE is required but not set")
 endif
 	@echo "INFO: deleting namespace $(NAMESPACE)"
 	kubectl delete namespace $(NAMESPACE)

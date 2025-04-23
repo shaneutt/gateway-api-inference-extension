@@ -20,7 +20,6 @@ package scheduling
 import (
 	"context"
 	"fmt"
-	"math/rand/v2"
 	"time"
 
 	"sigs.k8s.io/controller-runtime/pkg/log"
