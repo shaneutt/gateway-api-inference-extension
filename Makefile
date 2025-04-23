@@ -721,7 +721,7 @@ clean.environment.dev.kind:
 environment.dev.kubernetes.infrastructure:
 ifeq ($(strip $(INFRASTRUCTURE_OVERRIDE)),true)
 	@echo "Deploying OpenShift Infrastructure Components"
-	kustomize build deploy/environments/dev/kubernetes-istio-infra | kubectl apply --server-side --force-conflicts -f -
+	kustomize build deploy/environments/dev/kubernetes-kgateway-infra | kubectl apply --server-side --force-conflicts -f -
 else
 	$(error "Error: The environment variable INFRASTRUCTURE_OVERRIDE must be set to true in order to run this target.")
 endif
@@ -743,7 +743,7 @@ ifeq ($(strip $(INFRASTRUCTURE_OVERRIDE)),true)
 	@echo "This is extremely destructive. We'll provide 5 seconds before starting to give you a chance to cancel."
 	sleep 5
 	@echo "Tearing Down OpenShift Infrastructure Components"
-	kustomize build deploy/environments/dev/kubernetes-istio-infra | kubectl delete -f - || true
+	kustomize build deploy/environments/dev/kubernetes-kgateway-infra | kubectl delete -f - || true
 else
 	$(error "Error: The environment variable INFRASTRUCTURE_OVERRIDE must be set to true in order to run this target.")
 endif
@@ -776,7 +776,7 @@ endif
 	@echo "INFO: Creating namespace (if needed) and setting context to $(NAMESPACE)..."
 	kubectl create namespace $(NAMESPACE) 2>/dev/null || true
 	@echo "INFO: Deploying Development Environment in namespace $(NAMESPACE)"
-	kustomize build deploy/environments/dev/kubernetes-istio | envsubst | kubectl -n $(NAMESPACE) apply -f -
+	kustomize build deploy/environments/dev/kubernetes-kgateway | envsubst | kubectl -n $(NAMESPACE) apply -f -
 	@echo "INFO: Waiting for Pods in namespace $(NAMESPACE) to become ready"
 	kubectl -n $(NAMESPACE) wait --for=condition=Ready --all pods --timeout=300s
 	@echo "INFO: Waiting for Gateway in namespace $(NAMESPACE) to become ready"
