@@ -13,7 +13,7 @@ spec:
         - -poolNamespace
         - "default"
         - -v
-        - "5"
+        - "4"
         - --zap-encoder
         - "json"
         - -grpcPort

@@ -24,7 +24,7 @@ spec:
         - -poolName
         - "vllm-llama3-8b-instruct"
         - -v
-        - "5"
+        - "4"
         - --zap-encoder
         - "json"
         - -grpcPort

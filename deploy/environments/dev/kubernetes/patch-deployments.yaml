@@ -15,7 +15,7 @@ spec:
         - -poolNamespace
         - ${NAMESPACE}
         - -v
-        - "5"
+        - "4"
         - --zap-encoder
         - "json"
         - -grpcPort
