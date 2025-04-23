@@ -3,7 +3,7 @@
 #
 # This will deploy the full development stack on a KIND cluster:
 #
-#  * Istio Control Plane
+#  * KGateway Control Plane
 #  * VLLM Simulator
 #  * Inference Gateway
 #

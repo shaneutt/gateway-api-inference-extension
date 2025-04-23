@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This shell script deploys a kind cluster with an Istio-based Gateway API
+# This shell script deploys a kind cluster with a KGateway-based Gateway API
 # implementation fully configured. It deploys the vllm simulator, which it
 # exposes with a Gateway -> HTTPRoute -> InferencePool. The Gateway is
 # configured with the a filter for the ext_proc endpoint picker.
