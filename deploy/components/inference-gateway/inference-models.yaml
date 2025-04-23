@@ -8,5 +8,5 @@ spec:
   poolRef:
     name: vllm-llama3-8b-instruct
   targetModels:
-  - name: food-review-1
+  - name: food-review
     weight: 100
