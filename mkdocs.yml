@@ -54,13 +54,16 @@ nav:
         API Overview: concepts/api-overview.md
         Conformance: concepts/conformance.md
         Roles and Personas: concepts/roles-and-personas.md
-    - Implementations: implementations.md
+    - Implementations: 
+      - Gateways: implementations/gateways.md
+      - Model Servers: implementations/model-servers.md
     - FAQ: faq.md
   - Guides:
     - User Guides:
       - Getting started: guides/index.md
       - Adapter Rollout: guides/adapter-rollout.md
       - Metrics: guides/metrics.md
+      - Replacing an Inference Pool: guides/replacing-inference-pool.md
     - Implementer's Guide: guides/implementers.md
   - Performance:
     - Benchmark: performance/benchmark/index.md

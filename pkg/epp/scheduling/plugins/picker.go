@@ -14,23 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package pod
+package plugins
 
 import (
-	corev1 "k8s.io/api/core/v1"
+	"fmt"
+	"math/rand"
+
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
+	logutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/logging"
 )
 
-func IsPodReady(pod *corev1.Pod) bool {
-	if !pod.DeletionTimestamp.IsZero() {
-		return false
-	}
-	for _, condition := range pod.Status.Conditions {
-		if condition.Type == corev1.PodReady {
-			if condition.Status == corev1.ConditionTrue {
-				return true
-			}
-			break
-		}
-	}
-	return false
+type RandomPicker struct{}
+
+func (rp *RandomPicker) Name() string {
+	return "random"
+}
+
+func (rp *RandomPicker) Pick(ctx *types.Context, pods []types.Pod) (*types.Result, error) {
+	ctx.Logger.V(logutil.DEBUG).Info(fmt.Sprintf("Selecting a random pod from %d candidates: %+v", len(pods), pods))
+	i := rand.Intn(len(pods))
+	return &types.Result{TargetPod: pods[i]}, nil
 }

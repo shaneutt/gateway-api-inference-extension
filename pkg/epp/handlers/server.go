@@ -65,7 +65,7 @@ type StreamingServer struct {
 }
 
 type Scheduler interface {
-	Schedule(ctx context.Context, b *schedulingtypes.LLMRequest) (targetPod schedulingtypes.Pod, err error)
+	Schedule(ctx context.Context, b *schedulingtypes.LLMRequest) (result *schedulingtypes.Result, err error)
 }
 
 // RequestContext stores context information during the life time of an HTTP request.
@@ -325,7 +325,7 @@ func (r *RequestContext) updateStateAndSendIfNeeded(srv extProcPb.ExternalProces
 	}
 	if r.RequestState == BodyRequestResponsesComplete && r.reqTrailerResp != nil {
 		// Trailers in requests are not guaranteed
-		if err := srv.Send(r.reqHeaderResp); err != nil {
+		if err := srv.Send(r.reqTrailerResp); err != nil {
 			return status.Errorf(codes.Unknown, "failed to send response back to Envoy: %v", err)
 		}
 	}
@@ -351,7 +351,7 @@ func (r *RequestContext) updateStateAndSendIfNeeded(srv extProcPb.ExternalProces
 	}
 	if r.RequestState == BodyResponseResponsesComplete && r.respTrailerResp != nil {
 		// Trailers in requests are not guaranteed
-		if err := srv.Send(r.reqHeaderResp); err != nil {
+		if err := srv.Send(r.respTrailerResp); err != nil {
 			return status.Errorf(codes.Unknown, "failed to send response back to Envoy: %v", err)
 		}
 	}
