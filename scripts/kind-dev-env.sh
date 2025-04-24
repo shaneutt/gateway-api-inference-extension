@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This shell script deploys a kind cluster with an Istio-based Gateway API
+# This shell script deploys a kind cluster with a KGateway-based Gateway API
 # implementation fully configured. It deploys the vllm simulator, which it
 # exposes with a Gateway -> HTTPRoute -> InferencePool. The Gateway is
 # configured with the a filter for the ext_proc endpoint picker.
@@ -44,7 +44,7 @@ fi
 set -u
 
 # Check for required programs
-for cmd in kind kubectl ${CONTAINER_RUNTIME}; do
+for cmd in kind kubectl kustomize ${CONTAINER_RUNTIME}; do
     if ! command -v "$cmd" &> /dev/null; then
         echo "Error: $cmd is not installed or not in the PATH."
         exit 1
@@ -98,22 +98,26 @@ kubectl --context ${KUBE_CONTEXT} -n local-path-storage wait --for=condition=Rea
 # CRD Deployment (Gateway API + GIE)
 # ------------------------------------------------------------------------------
 
-kubectl kustomize deploy/components/crds |
+kustomize build deploy/components/crds-gateway-api |
 	kubectl --context ${KUBE_CONTEXT} apply --server-side --force-conflicts -f -
 
-# ------------------------------------------------------------------------------
-# Istio Control Plane Deployment
-# ------------------------------------------------------------------------------
+kustomize build deploy/components/crds-gie |
+	kubectl --context ${KUBE_CONTEXT} apply --server-side --force-conflicts -f -
 
-kubectl kustomize deploy/components/istio-control-plane | kubectl --context ${KUBE_CONTEXT} apply -f -
+kustomize build --enable-helm deploy/components/crds-kgateway |
+	kubectl --context ${KUBE_CONTEXT} apply --server-side --force-conflicts -f -
 
 # ------------------------------------------------------------------------------
 # Development Environment
 # ------------------------------------------------------------------------------
 
 # Deploy the environment to the "default" namespace
-kubectl kustomize deploy/environments/dev/kind | sed "s/REPLACE_NAMESPACE/${PROJECT_NAMESPACE}/gI" \
+kustomize build --enable-helm deploy/environments/dev/kind-kgateway \
+	| sed "s/REPLACE_NAMESPACE/${PROJECT_NAMESPACE}/gI" \
 	| kubectl --context ${KUBE_CONTEXT} apply -f -
+
+# Wait for all control-plane pods to be ready
+kubectl --context ${KUBE_CONTEXT} -n kgateway-system wait --for=condition=Ready --all pods --timeout=300s
 
 # Wait for all pods to be ready
 kubectl --context ${KUBE_CONTEXT} wait --for=condition=Ready --all pods --timeout=300s

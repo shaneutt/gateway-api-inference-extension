@@ -20,9 +20,9 @@ kind: Kustomization
 resources:
 - service-accounts.yaml
 - rbac.yaml
-- destination-rules.yaml
 - inference-pools.yaml
 - inference-models.yaml
+- services.yaml
 - deployments.yaml
 - gateways.yaml
 - httproutes.yaml

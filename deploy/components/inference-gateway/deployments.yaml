@@ -21,8 +21,6 @@ spec:
         image: quay.io/vllm-d/gateway-api-inference-extension/epp:latest
         imagePullPolicy: IfNotPresent
         args:
-        - -refreshMetricsInterval
-        - "500ms"
         - -poolName
         - "vllm-llama3-8b-instruct"
         - -v

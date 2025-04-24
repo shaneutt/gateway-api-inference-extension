@@ -6,6 +6,7 @@ namespace: ${NAMESPACE}
 resources:
 - ../../../components/vllm-sim/
 - ../../../components/inference-gateway/
+- gateway-parameters.yaml
 
 images:
 - name: quay.io/vllm-d/vllm-sim
@@ -17,3 +18,4 @@ images:
 
 patches:
 - path: patch-deployments.yaml
+- path: patch-gateways.yaml

@@ -721,7 +721,11 @@ clean.environment.dev.kind:
 environment.dev.kubernetes.infrastructure:
 ifeq ($(strip $(INFRASTRUCTURE_OVERRIDE)),true)
 	@echo "Deploying OpenShift Infrastructure Components"
-	kustomize build deploy/environments/dev/kubernetes-infra | kubectl apply --server-side --force-conflicts -f -
+	kustomize build deploy/components/crds-gateway-api | kubectl apply --server-side --force-conflicts -f -
+	kustomize build deploy/components/crds-gie | kubectl apply --server-side --force-conflicts -f -
+	kustomize build --enable-helm deploy/components/crds-kgateway | kubectl apply --server-side --force-conflicts -f -
+	kustomize build --enable-helm deploy/environments/dev/kubernetes-kgateway-infra | kubectl apply --server-side --force-conflicts -f -
+	kubectl -n kgateway-system wait deployment/kgateway --for=condition=Available --timeout=60s
 else
 	$(error "Error: The environment variable INFRASTRUCTURE_OVERRIDE must be set to true in order to run this target.")
 endif
@@ -743,7 +747,10 @@ ifeq ($(strip $(INFRASTRUCTURE_OVERRIDE)),true)
 	@echo "This is extremely destructive. We'll provide 5 seconds before starting to give you a chance to cancel."
 	sleep 5
 	@echo "Tearing Down OpenShift Infrastructure Components"
-	kustomize build deploy/environments/dev/kubernetes-infra | kubectl delete -f - || true
+	kustomize build --enable-helm deploy/environments/dev/kubernetes-kgateway-infra | kubectl delete -f - || true
+	kustomize build --enable-helm deploy/components/crds-kgateway | kubectl delete -f - || true
+	kustomize build deploy/components/crds-gie | kubectl delete -f - || true
+	kustomize build deploy/components/crds-gateway-api | kubectl delete -f - || true
 else
 	$(error "Error: The environment variable INFRASTRUCTURE_OVERRIDE must be set to true in order to run this target.")
 endif
@@ -754,33 +761,9 @@ endif
 # This target deploys the GIE stack in a specific namespace for development and
 # testing.
 # ------------------------------------------------------------------------------
-VLLM_SIM_IMAGE ?= quay.io/vllm-d/vllm-sim
-VLLM_SIM_TAG ?= 0.0.2
-EPP_IMAGE ?= us-central1-docker.pkg.dev/k8s-staging-images/gateway-api-inference-extension/epp
-EPP_TAG ?= main
 .PHONY: environment.dev.kubernetes
 environment.dev.kubernetes: check-kubectl check-kustomize check-envsubst
-	@echo "INFO: checking required vars"
-ifndef NAMESPACE
-	$(error "Error: NAMESPACE is required but not set")
-endif
-	export NAMESPACE=$(NAMESPACE)
-ifndef REGISTRY_SECRET
-	$(error "Error: REGISTRY_SECRET is required but not set")
-endif
-	export REGISTRY_SECRET=$(REGISTRY_SECRET)
-	export VLLM_SIM_IMAGE=$(VLLM_SIM_IMAGE)
-	export VLLM_SIM_TAG=$(VLLM_SIM_TAG)
-	export EPP_IMAGE=$(EPP_IMAGE)
-	export EPP_TAG=$(EPP_TAG)
-	@echo "INFO: Creating namespace (if needed) and setting context to $(NAMESPACE)..."
-	kubectl create namespace $(NAMESPACE) 2>/dev/null || true
-	@echo "INFO: Deploying Development Environment in namespace $(NAMESPACE)"
-	kustomize build deploy/environments/dev/kubernetes | envsubst | kubectl -n $(NAMESPACE) apply -f -
-	@echo "INFO: Waiting for Pods in namespace $(NAMESPACE) to become ready"
-	kubectl -n $(NAMESPACE) wait --for=condition=Ready --all pods --timeout=300s
-	@echo "INFO: Waiting for Gateway in namespace $(NAMESPACE) to become ready"
-	kubectl -n $(NAMESPACE) wait gateway/inference-gateway --for=condition=Programmed --timeout=60s
+	./scripts/kubernetes-dev-env.sh 2>&1
 	@echo "INFO: Development environment deployed to namespace $(NAMESPACE)"
 
 # ------------------------------------------------------------------------------
