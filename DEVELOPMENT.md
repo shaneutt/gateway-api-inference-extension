@@ -76,6 +76,16 @@ You can now make requests macthing the IP:port of one of the access mode above:
 $ curl -s -w '\n' http://<IP:port>/v1/completions -H 'Content-Type: application/json' -d '{"model":"food-review","prompt":"hi","max_tokens":10,"temperature":0}' | jq
 ```
 
+By default the created inference gateway, can be accessed on port 30080. This can
+be overriden to any free port in the range of 30000 to 32767, by running the above
+command as follows:
+
+```console
+GATEWAY_HOST_PORT=<selected-port> make environment.dev.kind
+```
+**Where:** &lt;selected-port&gt; is the port on your local machine you want to use to
+access the inference gatyeway.
+
 > **NOTE**: If you require significant customization of this environment beyond
 > what the standard deployment provides, you can use the `deploy/components`
 > with `kustomize` to build your own highly customized environment. You can use

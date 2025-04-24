@@ -117,7 +117,7 @@ kustomize build --enable-helm deploy/environments/dev/kind-kgateway \
 	| kubectl --context ${KUBE_CONTEXT} apply -f -
 
 # Wait for all control-plane pods to be ready
-kubectl --context ${KUBE_CONTEXT} -n kgateway-system wait --for=condition=Ready --all pods --timeout=300s
+kubectl --context ${KUBE_CONTEXT} -n kgateway-system wait --for=condition=Ready --all pods --timeout=360s
 
 # Wait for all pods to be ready
 kubectl --context ${KUBE_CONTEXT} wait --for=condition=Ready --all pods --timeout=300s
