@@ -63,6 +63,7 @@ type Filter interface {
 }
 
 // Scorer defines the interface for scoring pods based on context.
+// Scorers must return a score between 0 and 1, where 1 is the best score.
 type Scorer interface {
 	Plugin
 	Score(ctx *Context, pod Pod) (float64, error)
