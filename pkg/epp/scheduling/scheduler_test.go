@@ -520,12 +520,29 @@ func TestScorers(t *testing.T) {
 		},
 	}
 
+	expectedResult := &types.Result{
+		TargetPod: &types.PodMetrics{
+			Pod: &backendmetrics.Pod{NamespacedName: k8stypes.NamespacedName{Name: "pod2"}},
+			Metrics: &backendmetrics.Metrics{
+				WaitingQueueSize:    0,
+				KVCacheUsagePercent: 0.2,
+				MaxActiveModels:     2,
+				ActiveModels: map[string]int{
+					"foo": 1,
+					"bar": 1,
+				},
+				WaitingModels: map[string]int{},
+			},
+		},
+	}
+	expectedResult.TargetPod.SetScore(50)
+
 	tests := []struct {
 		name    string
 		scorer  types.Scorer
 		req     *types.LLMRequest
 		input   []*backendmetrics.FakePodMetrics
-		wantRes TestResult
+		wantRes *types.Result
 		err     bool
 	}{
 		{
@@ -552,9 +569,7 @@ func TestScorers(t *testing.T) {
 					Metrics: dummyMetrics,
 				},
 			},
-			wantRes: TestResult{
-				PodName: "pod2",
-			},
+			wantRes: expectedResult,
 		},
 	}
 
@@ -568,18 +583,12 @@ func TestScorers(t *testing.T) {
 				t.Errorf("Unexpected error, got %v, want %v", err, test.err)
 			}
 
-			result := TestResult{
-				PodName: got.TargetPod.GetPod().NamespacedName.Name,
-			}
-			if diff := cmp.Diff(test.wantRes, result); diff != "" {
+			opt := cmp.AllowUnexported(types.PodMetrics{})
+			if diff := cmp.Diff(test.wantRes, got, opt); diff != "" {
 				t.Errorf("Unexpected output (-want +got): %v", diff)
 			}
 		})
 	}
-}
-
-type TestResult struct {
-	PodName string
 }
 
 type testScorer struct {
