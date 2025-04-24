@@ -74,7 +74,7 @@ func NewScheduler(datastore Datastore) *Scheduler {
 		postSchedulePlugins: []types.PostSchedule{},
 		scorers:             []types.Scorer{},
 		filters:             []types.Filter{defaultPlugin},
-		picker:              defaultPlugin,
+		picker:              &maxScorePicker{},
 	}
 }
 
