@@ -16,6 +16,7 @@ resources:
 - services.yaml
 - ../../../components/kgateway-control-plane/
 - ../../../components/vllm-sim/
+- gateway-parameters.yaml
 - ../../../components/inference-gateway/
 
 patches:
