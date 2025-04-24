@@ -26,6 +26,7 @@ import (
 	backendmetrics "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/backend/metrics"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/metrics"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins"
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/pickers"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
 	logutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/logging"
 )
@@ -74,7 +75,7 @@ func NewScheduler(datastore Datastore) *Scheduler {
 		postSchedulePlugins: []types.PostSchedule{},
 		scorers:             []types.Scorer{},
 		filters:             []types.Filter{defaultPlugin},
-		picker:              &maxScorePicker{},
+		picker:              &pickers.MaxScorePicker{},
 	}
 }
 
@@ -198,7 +199,7 @@ func runScorersForPod(ctx *types.Context, scorers []types.Scorer, pod types.Pod)
 }
 
 type defaultPlugin struct {
-	plugins.RandomPicker
+	pickers.RandomPicker
 }
 
 func (p *defaultPlugin) Name() string {
