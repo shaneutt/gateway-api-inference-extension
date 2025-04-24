@@ -19,6 +19,7 @@ package scheduling
 import (
 	"context"
 	"errors"
+	"math/rand/v2"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -506,4 +507,113 @@ func findPods(ctx *types.Context, names ...k8stypes.NamespacedName) []types.Pod 
 		}
 	}
 	return res
+}
+
+func TestScorers(t *testing.T) {
+	dummyMetrics := &backendmetrics.Metrics{
+		WaitingQueueSize:    0,
+		KVCacheUsagePercent: 0.2,
+		MaxActiveModels:     2,
+		ActiveModels: map[string]int{
+			"foo": 1,
+			"bar": 1,
+		},
+	}
+
+	tests := []struct {
+		name    string
+		scorer  types.Scorer
+		req     *types.LLMRequest
+		input   []*backendmetrics.FakePodMetrics
+		wantRes TestResult
+		err     bool
+	}{
+		{
+			name:   "highest score with test scorer",
+			scorer: &testScorer{},
+			req: &types.LLMRequest{
+				Model:               "critical",
+				ResolvedTargetModel: "critical",
+				Critical:            true,
+			},
+			// pod2 will be picked because all the pods have the same metrics, and the test scorer
+			// chooses it
+			input: []*backendmetrics.FakePodMetrics{
+				{
+					Pod:     &backendmetrics.Pod{NamespacedName: k8stypes.NamespacedName{Name: "pod1"}},
+					Metrics: dummyMetrics,
+				},
+				{
+					Pod:     &backendmetrics.Pod{NamespacedName: k8stypes.NamespacedName{Name: "pod2"}},
+					Metrics: dummyMetrics,
+				},
+				{
+					Pod:     &backendmetrics.Pod{NamespacedName: k8stypes.NamespacedName{Name: "pod3"}},
+					Metrics: dummyMetrics,
+				},
+			},
+			wantRes: TestResult{
+				PodName: "pod2",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			scheduler := NewScheduler(&fakeDataStore{pods: test.input})
+			scheduler.scorers = append(scheduler.scorers, test.scorer)
+			scheduler.picker = &testPicker{}
+			got, err := scheduler.Schedule(context.Background(), test.req)
+			if test.err != (err != nil) {
+				t.Errorf("Unexpected error, got %v, want %v", err, test.err)
+			}
+
+			result := TestResult{
+				PodName: got.TargetPod.GetPod().NamespacedName.Name,
+			}
+			if diff := cmp.Diff(test.wantRes, result); diff != "" {
+				t.Errorf("Unexpected output (-want +got): %v", diff)
+			}
+		})
+	}
+}
+
+type TestResult struct {
+	PodName string
+}
+
+type testScorer struct {
+}
+
+func (ts *testScorer) Name() string {
+	return "test scorer"
+}
+
+func (ts *testScorer) Score(ctx *types.Context, pod types.Pod) (float64, error) {
+	if pod.GetPod().NamespacedName.Name == "pod2" {
+		return 50, nil
+	}
+	return 0, nil
+}
+
+type testPicker struct {
+}
+
+func (p *testPicker) Name() string {
+	return "test picker"
+}
+
+// Picks the pod with score 50, if no such pod, picks randomly
+func (p *testPicker) Pick(ctx *types.Context, pods []types.Pod) (*types.Result, error) {
+	var result *types.Pod
+	for _, pod := range pods {
+		if pod.Score() == 50 {
+			result = &pod
+			break
+		}
+	}
+	if result != nil {
+		return &types.Result{TargetPod: *result}, nil
+	}
+	return &types.Result{TargetPod: pods[rand.IntN(len(pods))]}, nil
 }
