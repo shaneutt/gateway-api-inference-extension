@@ -57,7 +57,7 @@ $ kubectl --context kind-gie-dev port-forward service/inference-gateway 8080:80
 > with `kind` is not fully implemented yet.
 ```sh
 # Determine the k8s node address 
-$ kubectl --context kind-gie-dev get node | grep address
+$ kubectl --context kind-gie-dev get node -o yaml | grep address
 # The service is accessible over port 80 of the worker IP address.
 ```
 
