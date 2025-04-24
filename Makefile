@@ -448,15 +448,22 @@ buildah-build: check-builder load-version-json ## Build and push image (multi-ar
 	@echo "✅ Using builder: $(BUILDER)"
 	@if [ "$(BUILDER)" = "buildah" ]; then \
 	  echo "🔧 Buildah detected: Performing multi-arch build..."; \
+	  FINAL_TAG=$(IMG); \
 	  for arch in amd64; do \
+	    ARCH_TAG=$$FINAL_TAG-$$arch; \
 	    echo "📦 Building for architecture: $$arch"; \
 	    buildah build --arch=$$arch --os=linux -t $(IMG)-$$arch . || exit 1; \
 	    echo "🚀 Pushing image: $(IMG)-$$arch"; \
 	    buildah push $(IMG)-$$arch docker://$(IMG)-$$arch || exit 1; \
 	  done; \
+	  echo "🧼 Removing existing manifest (if any)..."; \
+	  buildah manifest rm $$FINAL_TAG || true; \
 	  echo "🧱 Creating and pushing manifest list: $(IMG)"; \
 	  buildah manifest create $(IMG); \
-	  buildah manifest add $(IMG) $(IMG)-amd64; \
+	  for arch in amd64; do \
+	    ARCH_TAG=$$FINAL_TAG-$$arch; \
+	    buildah manifest add $$FINAL_TAG $$ARCH_TAG; \
+	  done; \
 	  buildah manifest push --all $(IMG) docker://$(IMG); \
 	elif [ "$(BUILDER)" = "docker" ]; then \
 	  echo "🐳 Docker detected: Building with buildx..."; \
