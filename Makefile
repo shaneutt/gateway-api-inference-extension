@@ -452,7 +452,7 @@ buildah-build: check-builder load-version-json ## Build and push image (multi-ar
 	  for arch in amd64; do \
 	    ARCH_TAG=$$FINAL_TAG-$$arch; \
 	    echo "📦 Building for architecture: $$arch"; \
-	    buildah build --arch=$$arch --os=linux -t $(IMG)-$$arch . || exit 1; \
+		buildah build --arch=$$arch --os=linux --layers --cache-from=$(IMAGE_TAG_BASE) --cache-to=$(IMAGE_TAG_BASE) -t $(IMG)-$$arch . || exit 1; \
 	    echo "🚀 Pushing image: $(IMG)-$$arch"; \
 	    buildah push $(IMG)-$$arch docker://$(IMG)-$$arch || exit 1; \
 	  done; \
