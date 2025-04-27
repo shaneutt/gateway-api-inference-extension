@@ -1,8 +1,9 @@
-package pickers
+package picker
 
 import (
 	"fmt"
 
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
 	logutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/logging"
 )
@@ -11,7 +12,7 @@ import (
 // candidates.
 type MaxScorePicker struct{}
 
-var _ types.Picker = &MaxScorePicker{}
+var _ plugins.Picker = &MaxScorePicker{}
 
 // Name returns the name of the picker.
 func (msp *MaxScorePicker) Name() string {
@@ -19,7 +20,7 @@ func (msp *MaxScorePicker) Name() string {
 }
 
 // Pick selects the pod with the maximum score from the list of candidates.
-func (msp *MaxScorePicker) Pick(ctx *types.Context, pods []types.Pod) (*types.Result, error) {
+func (msp *MaxScorePicker) Pick(ctx *types.SchedulingContext, pods []types.Pod) *types.Result {
 	debugLogger := ctx.Logger.V(logutil.DEBUG).WithName("max-score-picker")
 	debugLogger.Info(fmt.Sprintf("Selecting the pod with the max score from %d candidates: %+v",
 		len(pods), pods))
@@ -38,7 +39,7 @@ func (msp *MaxScorePicker) Pick(ctx *types.Context, pods []types.Pod) (*types.Re
 	}
 
 	if len(winners) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	if len(winners) > 1 {
@@ -50,5 +51,5 @@ func (msp *MaxScorePicker) Pick(ctx *types.Context, pods []types.Pod) (*types.Re
 	}
 
 	debugLogger.Info(fmt.Sprintf("Selected pod with max score (%f): %+v", maxScore, winners[0]))
-	return &types.Result{TargetPod: winners[0]}, nil
+	return &types.Result{TargetPod: winners[0]}
 }

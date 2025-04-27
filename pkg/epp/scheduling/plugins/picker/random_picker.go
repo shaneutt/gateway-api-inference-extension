@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package pickers
+package picker
 
 import (
 	"fmt"
@@ -24,19 +24,14 @@ import (
 	logutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/logging"
 )
 
-// RandomPicker picks a pod randomly from the list of candidates.
 type RandomPicker struct{}
 
-var _ types.Picker = &RandomPicker{}
-
-// Name returns the name of the picker.
 func (rp *RandomPicker) Name() string {
 	return "random"
 }
 
-// Pick selects a random pod from the list of candidates.
-func (rp *RandomPicker) Pick(ctx *types.Context, pods []types.Pod) (*types.Result, error) {
+func (rp *RandomPicker) Pick(ctx *types.SchedulingContext, pods []types.Pod) *types.Result {
 	ctx.Logger.V(logutil.DEBUG).Info(fmt.Sprintf("Selecting a random pod from %d candidates: %+v", len(pods), pods))
 	i := rand.Intn(len(pods))
-	return &types.Result{TargetPod: pods[i]}, nil
+	return &types.Result{TargetPod: pods[i]}
 }
