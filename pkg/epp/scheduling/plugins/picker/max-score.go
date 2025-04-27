@@ -1,4 +1,4 @@
-package pickers
+package picker
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 // candidates.
 type MaxScorePicker struct{}
 
-var _ types.Picker = &MaxScorePicker{}
+//var _ types.Picker = &MaxScorePicker{}
 
 // Name returns the name of the picker.
 func (msp *MaxScorePicker) Name() string {
@@ -19,7 +19,7 @@ func (msp *MaxScorePicker) Name() string {
 }
 
 // Pick selects the pod with the maximum score from the list of candidates.
-func (msp *MaxScorePicker) Pick(ctx *types.Context, pods []types.Pod) (*types.Result, error) {
+func (msp *MaxScorePicker) Pick(ctx *types.SchedulingContext, pods []types.Pod) (*types.Result, error) {
 	debugLogger := ctx.Logger.V(logutil.DEBUG).WithName("max-score-picker")
 	debugLogger.Info(fmt.Sprintf("Selecting the pod with the max score from %d candidates: %+v",
 		len(pods), pods))
@@ -46,7 +46,7 @@ func (msp *MaxScorePicker) Pick(ctx *types.Context, pods []types.Pod) (*types.Re
 			maxScore, winners))
 
 		randomPicker := RandomPicker{}
-		return randomPicker.Pick(ctx, winners)
+		return randomPicker.Pick(ctx, winners), nil
 	}
 
 	debugLogger.Info(fmt.Sprintf("Selected pod with max score (%f): %+v", maxScore, winners[0]))
