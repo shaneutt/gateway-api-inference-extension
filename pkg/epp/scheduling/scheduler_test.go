@@ -106,6 +106,7 @@ func TestSchedule(t *testing.T) {
 						WaitingModels: map[string]int{},
 					},
 				},
+				MutatedHeaders: make(map[string]string),
 			},
 		},
 		{
@@ -167,6 +168,7 @@ func TestSchedule(t *testing.T) {
 						WaitingModels: map[string]int{},
 					},
 				},
+				MutatedHeaders: make(map[string]string),
 			},
 		},
 		{
@@ -367,7 +369,10 @@ func TestSchedulePlugins(t *testing.T) {
 			wantPod := &types.PodMetrics{
 				Pod: &backendmetrics.Pod{NamespacedName: test.wantTargetPod},
 			}
-			wantRes := &types.Result{TargetPod: wantPod}
+			wantRes := &types.Result{
+				TargetPod:      wantPod,
+				MutatedHeaders: make(map[string]string),
+			}
 			if diff := cmp.Diff(wantRes, got); diff != "" {
 				t.Errorf("Unexpected output (-want +got): %v", diff)
 			}
