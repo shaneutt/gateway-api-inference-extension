@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	prefillPodHeader = "x-prefill-dns-name"
+	prefillPodHeader = "x-prefiller-url"
 )
 
 var PDFilter = &baseFilter{
