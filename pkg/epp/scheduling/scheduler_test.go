@@ -488,6 +488,10 @@ func (fds *fakeDataStore) PodGetAll() []backendmetrics.PodMetrics {
 	return pm
 }
 
+func (fds *fakeDataStore) GetPodForSession(_ string) *backendmetrics.Pod {
+	return nil
+}
+
 // TestPlugin is an implementation useful in unit tests.
 type TestPlugin struct {
 	NameRes                string

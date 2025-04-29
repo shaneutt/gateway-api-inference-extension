@@ -16,7 +16,10 @@ limitations under the License.
 
 package scheduling
 
-import "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins"
+import (
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins"
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/scorers"
+)
 
 type SchedulerConfig struct {
 	preSchedulePlugins  []plugins.PreSchedule

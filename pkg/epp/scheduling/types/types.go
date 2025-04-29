@@ -35,6 +35,7 @@ type LLMRequest struct {
 	// Resolved target model is the final target model after traffic split.
 	ResolvedTargetModel string
 	Critical            bool
+	SessionID           string
 }
 
 func (r *LLMRequest) String() string {
