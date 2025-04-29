@@ -331,7 +331,7 @@ func TestSchedulePlugins(t *testing.T) {
 			err:                false,
 		},
 		{
-			name: "all plugins executed successfully, different scorers weights",
+			name: "filter all",
 			config: SchedulerConfig{
 				preSchedulePlugins: []plugins.PreSchedule{tp1, tp2},
 				filters:            []plugins.Filter{tp1, tp_filterAll},
