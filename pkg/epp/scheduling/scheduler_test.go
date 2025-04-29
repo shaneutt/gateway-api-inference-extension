@@ -475,7 +475,7 @@ func TestSchedulePlugins(t *testing.T) {
 
 			if len(test.wantMutatedHeaders) != len(got.MutatedHeaders) {
 				t.Errorf("Count of mutated headers is %d, expected %d", len(got.MutatedHeaders), len(test.wantMutatedHeaders))
-      }
+			}
 		})
 	}
 }
