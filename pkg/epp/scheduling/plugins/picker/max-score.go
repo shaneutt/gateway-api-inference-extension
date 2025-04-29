@@ -20,19 +20,19 @@ func (msp *MaxScorePicker) Name() string {
 }
 
 // Pick selects the pod with the maximum score from the list of candidates.
-func (msp *MaxScorePicker) Pick(ctx *types.SchedulingContext, pods []types.Pod) *types.Result {
+func (msp *MaxScorePicker) Pick(ctx *types.SchedulingContext, pods []*types.ScoredPod) *types.Result {
 	debugLogger := ctx.Logger.V(logutil.DEBUG).WithName("max-score-picker")
 	debugLogger.Info(fmt.Sprintf("Selecting the pod with the max score from %d candidates: %+v",
 		len(pods), pods))
 
-	winners := make([]types.Pod, 0)
+	winners := make([]*types.ScoredPod, 0)
 
 	maxScore := 0.0
 	for _, pod := range pods {
-		score := pod.Score()
+		score := pod.Score
 		if score > maxScore {
 			maxScore = score
-			winners = []types.Pod{pod}
+			winners = []*types.ScoredPod{pod}
 		} else if score == maxScore {
 			winners = append(winners, pod)
 		}
@@ -51,5 +51,5 @@ func (msp *MaxScorePicker) Pick(ctx *types.SchedulingContext, pods []types.Pod) 
 	}
 
 	debugLogger.Info(fmt.Sprintf("Selected pod with max score (%f): %+v", maxScore, winners[0]))
-	return &types.Result{TargetPod: winners[0]}
+	return &types.Result{TargetPod: winners[0].Pod}
 }

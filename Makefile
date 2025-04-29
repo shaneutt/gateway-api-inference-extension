@@ -432,7 +432,7 @@ test: check-ginkgo ## Run tests
 post-deploy-test: ## Run post deployment tests
 	echo Success!
 	@echo "Post-deployment tests passed."
-	
+
 .PHONY: lint
 lint: check-golangci-lint ## Run lint
 	@printf "\033[33;1m==== Running linting ====\033[0m\n"
@@ -456,7 +456,7 @@ buildah-build: check-builder load-version-json ## Build and push image (multi-ar
 	  for arch in amd64; do \
 	    ARCH_TAG=$$FINAL_TAG-$$arch; \
 	    echo "📦 Building for architecture: $$arch"; \
-	    buildah build --arch=$$arch --os=linux -t $(IMG)-$$arch . || exit 1; \
+		buildah build --arch=$$arch --os=linux --layers -t $(IMG)-$$arch . || exit 1; \
 	    echo "🚀 Pushing image: $(IMG)-$$arch"; \
 	    buildah push $(IMG)-$$arch docker://$(IMG)-$$arch || exit 1; \
 	  done; \
@@ -780,15 +780,15 @@ environment.dev.kubernetes: check-kubectl check-kustomize check-envsubst
 # ------------------------------------------------------------------------------
 # Kubernetes Development Environment - Teardown
 #
-# Tears down the namespace, and therefore the development environment.
+# Tears down the development environment.
 # ------------------------------------------------------------------------------
 .PHONY: clean.environment.dev.kubernetes
 clean.environment.dev.kubernetes: check-kubectl check-kustomize check-envsubst
 ifndef NAMESPACE
 	$(error "Error: NAMESPACE is required but not set")
 endif
-	@echo "INFO: deleting namespace $(NAMESPACE)"
-	kubectl delete namespace $(NAMESPACE)
+	@echo "INFO: cleaning up dev environment in $(NAMESPACE)"
+	kustomize build deploy/environments/dev/kubernetes-kgateway | envsubst | kubectl -n "${NAMESPACE}" delete -f -
 
 # -----------------------------------------------------------------------------
 # TODO: these are old aliases that we still need for the moment, but will be
