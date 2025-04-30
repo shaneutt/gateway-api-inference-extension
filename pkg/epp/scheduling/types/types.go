@@ -59,6 +59,7 @@ type SchedulingContext struct {
 	Logger         logr.Logger
 	Req            *LLMRequest
 	PodsSnapshot   []Pod
+	TargetPort     int32
 	MutatedHeaders map[string]string
 }
 
@@ -82,13 +83,14 @@ type PodMetrics struct {
 	*backendmetrics.Metrics
 }
 
-func NewSchedulingContext(ctx context.Context, req *LLMRequest, pods []Pod) *SchedulingContext {
+func NewSchedulingContext(ctx context.Context, req *LLMRequest, pods []Pod, targetPort int32) *SchedulingContext {
 	logger := log.FromContext(ctx).WithValues("request", req)
 	return &SchedulingContext{
 		Context:        ctx,
 		Logger:         logger,
 		Req:            req,
 		PodsSnapshot:   pods,
+		TargetPort:     targetPort,
 		MutatedHeaders: make(map[string]string),
 	}
 }
