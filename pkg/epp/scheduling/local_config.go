@@ -19,6 +19,7 @@ package scheduling
 import (
 	"context"
 	"os"
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/picker"
 	"strconv"
 
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -39,6 +40,8 @@ func setDefaultConfig() {
 	// this configuration is a temporary state, it should be better streamlined.
 	setLoadAwareScorer()
 	setKVCacheAwareScorer()
+
+	defaultConfig.picker = picker.NewMaxScorePicker()
 }
 
 func setLoadAwareScorer() {

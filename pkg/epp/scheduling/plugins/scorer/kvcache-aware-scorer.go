@@ -96,6 +96,7 @@ func (s *KVCacheAwareScorer) Score(ctx *types.SchedulingContext, pods []types.Po
 		loggerDebug.Error(err, "Failed to get pod scores")
 		return nil
 	}
+	loggerDebug.Info("Got pod scores", "scores", scores)
 
 	return indexerScoresToNormalizedScoredPods(pods, scores)
 }
@@ -137,5 +138,6 @@ func indexerScoresToNormalizedScoredPods(pods []types.Pod, scores map[string]int
 			scoredPods[pod] = 0.0
 		}
 	}
+
 	return scoredPods
 }
