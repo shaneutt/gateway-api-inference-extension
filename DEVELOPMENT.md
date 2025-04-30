@@ -209,6 +209,9 @@ export HF_TOKEN="<HF_TOKEN>"
 
 **Note:** The model can be replaced. See [Environment Configuration](#environment-configuration) for model settings.
 
+> NOTE: you can set above images to the prebuilt images on quay.io.
+> Just note that the EPP image is not using the `/epp` suffix.
+
 Once all this is set up, you can deploy the environment:
 
 ```bash
