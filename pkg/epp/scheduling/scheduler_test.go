@@ -536,6 +536,7 @@ func (tp *TestPlugin) Filter(ctx *types.SchedulingContext, pods []types.Pod) []t
 		tp.ReceivedRequestHeaders[key] = value
 	}
 	return findPods(ctx, tp.FilterRes...)
+
 }
 
 func (tp *TestPlugin) Score(ctx *types.SchedulingContext, pods []types.Pod) map[types.Pod]float64 {

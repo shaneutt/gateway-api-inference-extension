@@ -204,6 +204,7 @@ func TestModel(t *testing.T) {
 				existing := ds.ModelDelete(types.NamespacedName{Name: model1ts.Name, Namespace: model1ts.Namespace})
 				got := ds.ModelGet(tsModel)
 				return existing != nil && got == nil
+
 			},
 			wantOpResult: true,
 			wantModels:   []*v1alpha2.InferenceModel{model2chat},
@@ -225,6 +226,7 @@ func TestModel(t *testing.T) {
 			if diff := testutil.DiffModelLists(test.wantModels, ds.ModelGetAll()); diff != "" {
 				t.Errorf("Unexpected models diff: %s", diff)
 			}
+
 		})
 	}
 }

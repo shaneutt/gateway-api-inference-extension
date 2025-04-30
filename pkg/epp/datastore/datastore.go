@@ -38,7 +38,9 @@ const (
 	ModelNameIndexKey = "spec.modelName"
 )
 
-var errPoolNotSynced = errors.New("InferencePool is not initialized in data store")
+var (
+	errPoolNotSynced = errors.New("InferencePool is not initialized in data store")
+)
 
 // The datastore is a local cache of relevant data for the given InferencePool (currently all pulled from k8s-api)
 type Datastore interface {

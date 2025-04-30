@@ -214,6 +214,7 @@ var LoRAAffinityFilter = &baseFilter{
 //   - Filtered slice of pod metrics based on affinity and availability
 //   - Error if any issues occur during filtering
 func loRASoftAffinityFilterFunc(ctx *types.SchedulingContext, pods []types.Pod) []types.Pod {
+
 	// Pre-allocate slices with estimated capacity
 	filtered_affinity := make([]types.Pod, 0, len(pods))
 	filtered_available := make([]types.Pod, 0, len(pods))

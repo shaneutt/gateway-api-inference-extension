@@ -240,6 +240,7 @@ func ExecCommandInPod(
 	podNamespace, podName, containerName string,
 	cmd []string,
 ) (string, error) {
+
 	parameterCodec := runtime.NewParameterCodec(scheme)
 
 	req := kubeClient.CoreV1().RESTClient().
