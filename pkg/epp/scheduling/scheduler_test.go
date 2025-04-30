@@ -21,10 +21,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	k8stypes "k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/gateway-api-inference-extension/api/v1alpha2"
 	backendmetrics "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/backend/metrics" // Import config for thresholds
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
+	testutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/testing"
 )
 
 // Tests the default scheduler configuration and expected behavior.
@@ -482,6 +485,10 @@ func TestSchedulePlugins(t *testing.T) {
 
 type fakeDataStore struct {
 	pods []*backendmetrics.FakePodMetrics
+}
+
+func (fds *fakeDataStore) PoolGet() (*v1alpha2.InferencePool, error) {
+	return &testutil.MakeInferencePool("my-pool").TargetPortNumber(0).InferencePool, nil
 }
 
 func (fds *fakeDataStore) PodGetAll() []backendmetrics.PodMetrics {

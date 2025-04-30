@@ -16,6 +16,7 @@ limitations under the License.
 package filter
 
 import (
+	"fmt"
 	"math/rand/v2"
 
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/backend/metrics"
@@ -55,7 +56,7 @@ func prefillDecodeFilterFunc(ctx *types.SchedulingContext, pods []types.Pod) []t
 	if len(pPods) > 0 {
 		// select a random prefill pod
 		randomIndex := rand.IntN(len(pPods))
-		ctx.MutatedHeaders[prefillPodHeader] = pPods[randomIndex].GetPod().NamespacedName.String()
+		ctx.MutatedHeaders[prefillPodHeader] = fmt.Sprintf("http://%s:%d", pPods[randomIndex].GetPod().Address, ctx.TargetPort)
 	}
 
 	if len(dPods) > 1 {
