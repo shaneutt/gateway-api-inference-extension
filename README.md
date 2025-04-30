@@ -6,6 +6,23 @@
 
 This project offers tools for AI Inference, enabling developers to build [Inference Gateways].
 
+---
+## Temporary Fork Configuration
+
+To enable KVCacheAwareScorer, the following env vars must be configured:
+```
+export ENABLE_KVCACHE_AWARE_SCORER=true
+export KVCACHE_AWARE_SCORER_WEIGHT=1.0
+export KVCACHE_INDEXER_REDIS_ADDR=<redis-service>
+export HF_TOKEN=<HuggingFace Token that has access to the vLLM models>
+```
+
+To enable LoadAwareScorer, the following env vars must be configured:
+```
+export ENABLE_LOAD_AWARE_SCORER=true
+export LOAD_AWARE_SCORER_WEIGHT=1.0
+```
+---
 [Inference Gateways]:#concepts-and-definitions
 
 ## Concepts and Definitions

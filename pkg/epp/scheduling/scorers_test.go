@@ -25,7 +25,7 @@ import (
 	backendmetrics "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/backend/metrics" // Import config for thresholds
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/picker"
-	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/scorers"
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/scorer"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/types"
 )
 
@@ -40,7 +40,7 @@ func TestScorers(t *testing.T) {
 	}{
 		{
 			name:   "load based scorer",
-			scorer: &scorers.LoadBasedScorer{},
+			scorer: &scorer.LoadAwareScorer{},
 			req: &types.LLMRequest{
 				Model:               "critical",
 				ResolvedTargetModel: "critical",
