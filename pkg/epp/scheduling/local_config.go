@@ -37,11 +37,11 @@ const (
 func setDefaultConfig() {
 	// since the default config is a global variable, we add this function to minimize rebase conflicts.
 	// this configuration is a temporary state, it should be better streamlined.
-	setLoadBasedScorer()
+	setLoadAwareScorer()
 	setKVCacheAwareScorer()
 }
 
-func setLoadBasedScorer() {
+func setLoadAwareScorer() {
 	ctx := context.Background()
 	loggerDebug := log.FromContext(ctx).WithName("scheduler_config").V(logutil.DEBUG)
 
@@ -61,6 +61,7 @@ func setLoadBasedScorer() {
 		loadBasedScorerWeight = int(loadBasedScorerWeightInt64)
 	}
 
+	loggerDebug.Info("Initialized LoadAwareScorer", "weight", loadBasedScorerWeight)
 	defaultConfig.scorers[&scorer.LoadAwareScorer{}] = loadBasedScorerWeight
 }
 
@@ -90,5 +91,6 @@ func setKVCacheAwareScorer() {
 		kvCacheScorerWeight = int(kvCacheScorerWeightInt64)
 	}
 
+	loggerDebug.Info("Initialized KVCacheAwareScorer", "weight", kvCacheScorerWeight)
 	defaultConfig.scorers[kvCacheScorer] = kvCacheScorerWeight
 }
