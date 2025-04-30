@@ -18,12 +18,10 @@ package scheduling
 
 import (
 	"context"
-	"os"
-	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/picker"
-	"strconv"
-
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/picker"
 	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/scorer"
+	envutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/env"
 	logutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/logging"
 )
 
@@ -48,31 +46,21 @@ func setLoadAwareScorer() {
 	ctx := context.Background()
 	loggerDebug := log.FromContext(ctx).WithName("scheduler_config").V(logutil.DEBUG)
 
-	if os.Getenv(loadAwareScorerEnablementEnvVar) != "true" {
+	if envutil.GetEnvString(loadAwareScorerEnablementEnvVar, "false", loggerDebug) != "true" {
 		loggerDebug.Info("Skipping LoadAwareScorer creation as it is not enabled")
 		return
 	}
 
-	loadBasedScorerWeight := 1
-	if weightStr := os.Getenv(loadAwareScorerWeightEnvVar); weightStr != "" {
-		var err error
-		loadBasedScorerWeightInt64, err := strconv.ParseInt(weightStr, 10, 32)
-		if err != nil {
-			loggerDebug.Error(err, "Failed to parse LOAD_BASED_SCORER_WEIGHT")
-		}
-
-		loadBasedScorerWeight = int(loadBasedScorerWeightInt64)
-	}
-
-	loggerDebug.Info("Initialized LoadAwareScorer", "weight", loadBasedScorerWeight)
+	loadBasedScorerWeight := envutil.GetEnvInt(loadAwareScorerWeightEnvVar, 1, loggerDebug)
 	defaultConfig.scorers[&scorer.LoadAwareScorer{}] = loadBasedScorerWeight
+	loggerDebug.Info("Initialized LoadAwareScorer", "weight", loadBasedScorerWeight)
 }
 
 func setKVCacheAwareScorer() {
 	ctx := context.Background()
 	loggerDebug := log.FromContext(ctx).WithName("scheduler_config").V(logutil.DEBUG)
 
-	if os.Getenv(kvCacheScorerEnablementEnvVar) != "true" {
+	if envutil.GetEnvString(kvCacheScorerEnablementEnvVar, "false", loggerDebug) != "true" {
 		loggerDebug.Info("Skipping KVCacheAwareScorer creation as it is not enabled")
 		return
 	}
@@ -83,17 +71,7 @@ func setKVCacheAwareScorer() {
 		return
 	}
 
-	kvCacheScorerWeight := 1
-	if weightStr := os.Getenv(kvCacheScorerWeightEnvVar); weightStr != "" {
-		var err error
-		kvCacheScorerWeightInt64, err := strconv.ParseInt(weightStr, 10, 32)
-		if err != nil {
-			loggerDebug.Error(err, "Failed to parse KVCACHE_SCORER_WEIGHT")
-		}
-
-		kvCacheScorerWeight = int(kvCacheScorerWeightInt64)
-	}
-
-	loggerDebug.Info("Initialized KVCacheAwareScorer", "weight", kvCacheScorerWeight)
+	kvCacheScorerWeight := envutil.GetEnvInt(kvCacheScorerWeightEnvVar, 1, loggerDebug)
 	defaultConfig.scorers[kvCacheScorer] = kvCacheScorerWeight
+	loggerDebug.Info("Initialized KVCacheAwareScorer", "weight", kvCacheScorerWeight)
 }
