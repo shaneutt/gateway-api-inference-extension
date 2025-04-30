@@ -1,7 +1,8 @@
 run:
   timeout: 5m
   allow-parallel-runners: true
-
+  diff: false
+  
 # Settings related to issues
 issues:
   # Report issues on new code only (since we're brining in from upstream)
