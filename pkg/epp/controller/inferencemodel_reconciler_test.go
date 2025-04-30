@@ -227,7 +227,6 @@ func TestInferenceModelReconciler(t *testing.T) {
 			if diff := diffStore(ds, diffStoreParams{wantPool: pool, wantModels: test.wantModels}); diff != "" {
 				t.Errorf("Unexpected diff (+got/-want): %s", diff)
 			}
-
 		})
 	}
 }

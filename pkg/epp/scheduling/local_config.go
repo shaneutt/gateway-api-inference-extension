@@ -17,12 +17,78 @@ limitations under the License.
 package scheduling
 
 import (
-	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/scorers"
+	"context"
+	"os"
+	"strconv"
+
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/gateway-api-inference-extension/pkg/epp/scheduling/plugins/scorer"
+	logutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/logging"
 )
 
-func init() {
-	defaultConfig.scorers[&scorers.LoadBasedScorer{}] = 1.0
+const (
+	kvCacheScorerEnablementEnvVar   = "ENABLE_KVCACHE_AWARE_SCORER"
+	loadAwareScorerEnablementEnvVar = "ENABLE_LOAD_AWARE_SCORER"
 
-	// Added as a reference
-	// defaultConfig.filters = []plugins.Filter{filter.PDFilter}
+	kvCacheScorerWeightEnvVar   = "KVCACHE_AWARE_SCORER_WEIGHT"
+	loadAwareScorerWeightEnvVar = "LOAD_AWARE_SCORER_WEIGHT"
+)
+
+func setDefaultConfig() {
+	// since the default config is a global variable, we add this function to minimize rebase conflicts.
+	// this configuration is a temporary state, it should be better streamlined.
+	setLoadBasedScorer()
+	setKVCacheAwareScorer()
+}
+
+func setLoadBasedScorer() {
+	ctx := context.Background()
+	loggerDebug := log.FromContext(ctx).WithName("scheduler_config").V(logutil.DEBUG)
+
+	if os.Getenv(loadAwareScorerEnablementEnvVar) != "true" {
+		loggerDebug.Info("Skipping LoadAwareScorer creation as it is not enabled")
+		return
+	}
+
+	loadBasedScorerWeight := 1
+	if weightStr := os.Getenv(loadAwareScorerWeightEnvVar); weightStr != "" {
+		var err error
+		loadBasedScorerWeightInt64, err := strconv.ParseInt(weightStr, 10, 32)
+		if err != nil {
+			loggerDebug.Error(err, "Failed to parse LOAD_BASED_SCORER_WEIGHT")
+		}
+
+		loadBasedScorerWeight = int(loadBasedScorerWeightInt64)
+	}
+
+	defaultConfig.scorers[&scorer.LoadAwareScorer{}] = loadBasedScorerWeight
+}
+
+func setKVCacheAwareScorer() {
+	ctx := context.Background()
+	loggerDebug := log.FromContext(ctx).WithName("scheduler_config").V(logutil.DEBUG)
+
+	if os.Getenv(kvCacheScorerEnablementEnvVar) != "true" {
+		loggerDebug.Info("Skipping KVCacheAwareScorer creation as it is not enabled")
+		return
+	}
+
+	kvCacheScorer, err := scorer.NewKVCacheAwareScorer(ctx)
+	if err != nil {
+		loggerDebug.Error(err, "Failed to create KVCacheAwareScorer")
+		return
+	}
+
+	kvCacheScorerWeight := 1
+	if weightStr := os.Getenv(kvCacheScorerWeightEnvVar); weightStr != "" {
+		var err error
+		kvCacheScorerWeightInt64, err := strconv.ParseInt(weightStr, 10, 32)
+		if err != nil {
+			loggerDebug.Error(err, "Failed to parse KVCACHE_SCORER_WEIGHT")
+		}
+
+		kvCacheScorerWeight = int(kvCacheScorerWeightInt64)
+	}
+
+	defaultConfig.scorers[kvCacheScorer] = kvCacheScorerWeight
 }

@@ -40,9 +40,11 @@ func (fpm *FakePodMetrics) String() string {
 func (fpm *FakePodMetrics) GetPod() *Pod {
 	return fpm.Pod
 }
+
 func (fpm *FakePodMetrics) GetMetrics() *Metrics {
 	return fpm.Metrics
 }
+
 func (fpm *FakePodMetrics) UpdatePod(pod *corev1.Pod) {
 	fpm.Pod = toInternalPod(pod)
 }

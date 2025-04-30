@@ -58,7 +58,6 @@ func makeMetricFamily(name string, metrics ...*dto.Metric) *dto.MetricFamily {
 // --- Tests ---
 
 func TestGetMetric(t *testing.T) {
-
 	metricFamilies := map[string]*dto.MetricFamily{
 		"metric1": makeMetricFamily("metric1",
 			makeMetric(map[string]string{"label1": "value1"}, 1.0, 1000),
@@ -166,7 +165,6 @@ func TestGetMetric(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			gotMetric, err := p.getMetric(metricFamilies, tt.spec)
 
 			if tt.wantError {
@@ -240,7 +238,6 @@ func TestLabelsMatch(t *testing.T) {
 }
 
 func TestGetLatestLoraMetric(t *testing.T) {
-
 	testCases := []struct {
 		name             string
 		metricFamilies   map[string]*dto.MetricFamily

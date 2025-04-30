@@ -121,7 +121,8 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 					KVCacheUsagePercent: 0.2,
 				},
 			},
-			wantMetrics: map[string]string{`inference_model_request_total`: `
+			wantMetrics: map[string]string{
+				`inference_model_request_total`: `
 					# HELP inference_model_request_total [ALPHA] Counter of inference model requests broken out for each model and target model.
 					# TYPE inference_model_request_total counter
 					inference_model_request_total{model_name="my-model",target_model_name="my-model-12345"} 1
@@ -153,7 +154,8 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 												RawValue: []byte(strconv.Itoa(76)),
 											},
 										},
-									}},
+									},
+								},
 							},
 						},
 					},
@@ -237,7 +239,8 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 												RawValue: []byte(strconv.Itoa(76)),
 											},
 										},
-									}},
+									},
+								},
 							},
 						},
 					},
@@ -321,7 +324,8 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 												RawValue: []byte(strconv.Itoa(76)),
 											},
 										},
-									}},
+									},
+								},
 							},
 						},
 					},
@@ -454,7 +458,8 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 												RawValue: []byte(strconv.Itoa(76)),
 											},
 										},
-									}},
+									},
+								},
 							},
 						},
 					},
@@ -565,7 +570,8 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 												RawValue: []byte(strconv.Itoa(76)),
 											},
 										},
-									}},
+									},
+								},
 							},
 						},
 					},
@@ -676,7 +682,8 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 												RawValue: []byte(strconv.Itoa(74)),
 											},
 										},
-									}},
+									},
+								},
 							},
 						},
 					},
@@ -924,35 +931,40 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 					Request: &extProcPb.ProcessingRequest_ResponseBody{
 						ResponseBody: &extProcPb.HttpBody{
 							Body:        []byte(`data: {"id":"cmpl-0fee233f-7d56-404a-acd3-4dad775d03d9","object":"text_completion","created":1741379018,"model":"food-review-1","choices":[{"index":0,"text":"NEVER","logprobs":null,"finish_reason":null,"stop_reason":null}],"usage":null}`),
-							EndOfStream: false},
+							EndOfStream: false,
+						},
 					},
 				},
 				{
 					Request: &extProcPb.ProcessingRequest_ResponseBody{
 						ResponseBody: &extProcPb.HttpBody{
 							Body:        []byte(`data: {"id":"cmpl-0fee233f-7d56-404a-acd3-4dad775d03d9","object":"text_completion","created":1741379018,"model":"food-review-1","choices":[{"index":0,"text":"GONNA","logprobs":null,"finish_reason":null,"stop_reason":null}],"usage":null}`),
-							EndOfStream: false},
+							EndOfStream: false,
+						},
 					},
 				},
 				{
 					Request: &extProcPb.ProcessingRequest_ResponseBody{
 						ResponseBody: &extProcPb.HttpBody{
 							Body:        []byte(`data: {"id":"cmpl-0fee233f-7d56-404a-acd3-4dad775d03d9","object":"text_completion","created":1741379018,"model":"food-review-1","choices":[{"index":0,"text":"GIVE","logprobs":null,"finish_reason":null,"stop_reason":null}],"usage":null}`),
-							EndOfStream: false},
+							EndOfStream: false,
+						},
 					},
 				},
 				{
 					Request: &extProcPb.ProcessingRequest_ResponseBody{
 						ResponseBody: &extProcPb.HttpBody{
 							Body:        []byte(`data: {"id":"cmpl-0fee233f-7d56-404a-acd3-4dad775d03d9","object":"text_completion","created":1741379018,"model":"food-review-1","choices":[{"index":0,"text":"YOU","logprobs":null,"finish_reason":null,"stop_reason":null}],"usage":null}`),
-							EndOfStream: false},
+							EndOfStream: false,
+						},
 					},
 				},
 				{
 					Request: &extProcPb.ProcessingRequest_ResponseBody{
 						ResponseBody: &extProcPb.HttpBody{
 							Body:        []byte(`data: {"id":"cmpl-0fee233f-7d56-404a-acd3-4dad775d03d9","object":"text_completion","created":1741379018,"model":"food-review-1","choices":[{"index":0,"text":"UP","logprobs":null,"finish_reason":null,"stop_reason":null}],"usage":null}`),
-							EndOfStream: false},
+							EndOfStream: false,
+						},
 					},
 				},
 				{
@@ -961,14 +973,16 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 							Body: []byte(`data: {"id":"cmpl-0fee233f-7d56-404a-acd3-4dad775d03d9","object":"text_completion","created":1741379018,"model":"food-review-1","choices":[],"usage":{"prompt_tokens":7,"total_tokens":17,"completion_tokens":10}}
 		data: [DONE]`,
 							),
-							EndOfStream: false},
+							EndOfStream: false,
+						},
 					},
 				},
 				{
 					Request: &extProcPb.ProcessingRequest_ResponseBody{
 						ResponseBody: &extProcPb.HttpBody{
 							Body:        []byte(""),
-							EndOfStream: true},
+							EndOfStream: true,
+						},
 					},
 				},
 			},
@@ -1172,7 +1186,8 @@ func TestFullDuplexStreamed_KubeInferenceModelRequest(t *testing.T) {
 												RawValue: []byte("192.168.1.1:8000"),
 											},
 										},
-									}},
+									},
+								},
 							},
 						},
 					},

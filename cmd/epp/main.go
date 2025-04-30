@@ -314,5 +314,4 @@ func verifyMetricMapping(mapping backendmetrics.MetricMapping, logger logr.Logge
 	if mapping.LoraRequestInfo == nil {
 		logger.Info("Not scraping metric: LoraRequestInfo")
 	}
-
 }
