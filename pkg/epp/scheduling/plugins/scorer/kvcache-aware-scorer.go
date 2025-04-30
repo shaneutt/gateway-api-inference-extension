@@ -36,17 +36,17 @@ const (
 	huggingFaceTokenEnvVar = "HF_TOKEN"
 )
 
-// KVCacheAwareScorer is a concrete implementation of the Scorer interface.
-// It uses the KVCacheIndexer to score pods based on KVCache awareness.
+// KVCacheAwareScorer uses the KVCacheIndexer to score pods based on KVCache
+// awareness.
 type KVCacheAwareScorer struct {
 	kvCacheIndexer *kvcache.Indexer
 }
 
 // NewKVCacheAwareScorer creates a new KVCacheAwareScorer instance.
-// It initializes the KVCacheIndexer with the provided configuration,
-// and runs it with the given context.
+// It initializes the KVCacheIndexer from environment variables.
 //
-// If the configuration is nil, it uses the default configuration.
+// If the environment variables are not set, or if the indexer
+// fails to initialize, an error is returned.
 func NewKVCacheAwareScorer(ctx context.Context) (plugins.Scorer, error) {
 	config := kvcache.NewDefaultConfig()
 
@@ -82,8 +82,7 @@ func (s *KVCacheAwareScorer) Name() string {
 }
 
 // Score scores the provided pod based on the KVCache index state.
-// This function is not concurrent-safe and should be called in a
-// single-threaded manner.
+// The returned scores are normalized to a range of 0-1.
 func (s *KVCacheAwareScorer) Score(ctx *types.SchedulingContext, pods []types.Pod) map[types.Pod]float64 {
 	loggerDebug := log.FromContext(ctx).WithName(kvCacheAwareScorerName).V(logutil.DEBUG)
 	if ctx.Req == nil {
