@@ -12,34 +12,32 @@ issues:
   exclude-dirs:
     - bin
   # Files to exclude from linting
-  exclude-files:
-    - pkg/epp/server/runserver_test.go
+  # exclude-files:
+  #   - pkg/epp/server/runserver_test.go
     
 linters:
   disable-all: true
-  disable:
-    - goanalysis_metalinter
   enable:
     - copyloopvar
-    - dupword
-    - durationcheck
-    - fatcontext
-    - ginkgolinter
-    - gocritic
-    - govet        
-    - loggercheck
-    - misspell
-    - perfsprint
-    - revive
-    - unconvert
-    - makezero
-    - errcheck
-    - goconst
-    - ineffassign
-    - nakedret
-    - prealloc
-    - unparam
-    - unused
+    # - dupword
+    # - durationcheck
+    # - fatcontext
+    # - ginkgolinter
+    # - gocritic
+    # - govet        
+    # - loggercheck
+    # - misspell
+    # - perfsprint
+    # - revive
+    # - unconvert
+    # - makezero
+    # - errcheck
+    # - goconst
+    # - ineffassign
+    # - nakedret
+    # - prealloc
+    # - unparam
+    # - unused
 
 linters-settings:
   revive:
