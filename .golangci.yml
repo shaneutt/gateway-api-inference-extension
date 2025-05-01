@@ -2,7 +2,7 @@ run:
   timeout: 5m
   allow-parallel-runners: true
   skip-files:
-    - "pkg/epp/server/runserver_test.go"
+    - '^pkg/epp/server/runserver_test\.go$'
     
 # Settings related to issues
 issues:
