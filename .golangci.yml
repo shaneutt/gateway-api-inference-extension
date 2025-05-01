@@ -9,13 +9,7 @@ issues:
   # Which dirs to exclude: issues from them won't be reported
   exclude-dirs:
     - bin
-  exclude-files:
-    - '^some/other/file\.go$'   # if you still need it elsewhere
-  exclude-rules:
-    - path: '^pkg/epp/server/runserver_test\.go$'
-      linters:
-        - typecheck
-        
+    
 linters:
   disable-all: true
   enable:
