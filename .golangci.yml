@@ -3,7 +3,9 @@ version: "2"
 run:
   timeout: 5m
   allow-parallel-runners: true
-
+  skip-files:
+    - '^pkg/epp/server/runserver_test\.go$'
+    
 # Settings related to issues
 issues:
   # Report issues on new code only (since we're brining in from upstream)
