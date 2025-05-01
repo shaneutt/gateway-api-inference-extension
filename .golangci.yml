@@ -30,7 +30,6 @@ linters:
     - makezero
     - errcheck
     - goconst
-    - gofmt
     - goimports
     - gosimple
     - ineffassign
