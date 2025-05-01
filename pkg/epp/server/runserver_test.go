@@ -24,6 +24,9 @@ import (
 	logutil "sigs.k8s.io/gateway-api-inference-extension/pkg/epp/util/logging"
 )
 
+// Define a variable with the manager package type to explicitly show usage to linter
+var _ manager.LeaderElectionRunnable = nil
+
 func TestRunnable(t *testing.T) {
 	// Make sure AsRunnable() does not use leader election.
 	runner := server.NewDefaultExtProcServerRunner().AsRunnable(logutil.NewTestLogger())
