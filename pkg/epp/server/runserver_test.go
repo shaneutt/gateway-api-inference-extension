@@ -16,8 +16,6 @@ limitations under the License.
 
 package server_test
 
-//nolint:typecheck
-
 import (
 	"testing"
 
