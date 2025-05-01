@@ -20,19 +20,19 @@ linters:
     - ginkgolinter
     - gocritic
     # - govet        
-    # - loggercheck
-    # - misspell
-    # - perfsprint
-    # - revive
-    # - unconvert
-    # - makezero
-    # - errcheck
-    # - goconst
-    # - ineffassign
-    # - nakedret
-    # - prealloc
-    # - unparam
-    # - unused
+    - loggercheck
+    - misspell
+    - perfsprint
+    - revive
+    - unconvert
+    - makezero
+    - errcheck
+    - goconst
+    - ineffassign
+    - nakedret
+    - prealloc
+    - unparam
+    - unused
 
 linters-settings:
   revive:
