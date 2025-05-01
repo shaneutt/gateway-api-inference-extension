@@ -1,7 +1,7 @@
 run:
   timeout: 5m
   allow-parallel-runners: true
-    
+
 # Settings related to issues
 issues:
   # Report issues on new code only (since we're brining in from upstream)
@@ -14,26 +14,30 @@ linters:
   disable-all: true
   enable:
     - copyloopvar
-    # - dupword
-    # - durationcheck
-    # - fatcontext
-    # - ginkgolinter
-    # - gocritic
-    # - govet        
-    # - loggercheck
-    # - misspell
-    # - perfsprint
-    # - revive
-    # - unconvert
-    # - makezero
-    # - errcheck
-    # - goconst
-    # - ineffassign
-    # - nakedret
-    # - prealloc
-    # - unparam
-    # - unused
-
+    - dupword
+    - durationcheck
+    - fatcontext
+    - ginkgolinter
+    - gocritic
+    - govet
+    - loggercheck
+    - misspell
+    - perfsprint
+    - revive
+    - unconvert
+    - makezero
+    - errcheck
+    - goconst
+    - gofmt
+    - goimports
+    - gosimple
+    - ineffassign
+    - nakedret
+    - prealloc
+    - typecheck
+    - unparam
+    - unused
+    
 linters-settings:
   revive:
     rules:
