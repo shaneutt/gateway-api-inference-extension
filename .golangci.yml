@@ -17,9 +17,9 @@ linters:
     - dupword
     - durationcheck
     - fatcontext
-    # - ginkgolinter
-    # - gocritic
-    # - govet        
+    - ginkgolinter
+    - gocritic
+    - govet        
     # - loggercheck
     # - misspell
     # - perfsprint
