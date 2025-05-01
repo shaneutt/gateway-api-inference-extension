@@ -30,7 +30,6 @@ linters:
     - makezero
     - errcheck
     - goconst
-    - gosimple
     - ineffassign
     - nakedret
     - prealloc
