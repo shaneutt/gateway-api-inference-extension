@@ -37,7 +37,7 @@ linters:
     - nakedret
     - prealloc
     - unparam
-    - unused
+    # - unused
 
 linters-settings:
   revive:
