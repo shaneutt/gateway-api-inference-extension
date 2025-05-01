@@ -30,7 +30,6 @@ linters:
     - makezero
     - errcheck
     - goconst
-    - goimports
     - gosimple
     - ineffassign
     - nakedret
