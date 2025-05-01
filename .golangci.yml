@@ -3,8 +3,6 @@ version: "2"
 run:
   timeout: 5m
   allow-parallel-runners: true
-  skip-files:
-    - '^pkg/epp/server/runserver_test\.go$'
     
 # Settings related to issues
 issues:
@@ -13,8 +11,9 @@ issues:
   # Which dirs to exclude: issues from them won't be reported
   exclude-dirs:
     - bin
+  # Files to exclude from linting
   exclude-files:
-    - '^pkg/epp/server/runserver_test\.go$'
+    - pkg/epp/server/runserver_test.go
     
 linters:
   disable-all: true
