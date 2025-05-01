@@ -17,6 +17,8 @@ issues:
     
 linters:
   disable-all: true
+  disable:
+    - goanalysis_metalinter
   enable:
     - copyloopvar
     - dupword
@@ -37,7 +39,7 @@ linters:
     - nakedret
     - prealloc
     - unparam
-    # - unused
+    - unused
 
 linters-settings:
   revive:
