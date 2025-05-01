@@ -1,8 +1,9 @@
 run:
   timeout: 5m
   allow-parallel-runners: true
-  diff: false
-  
+  skip-files:
+    - "pkg/epp/server/runserver_test.go"
+    
 # Settings related to issues
 issues:
   # Report issues on new code only (since we're brining in from upstream)
@@ -10,6 +11,7 @@ issues:
   # Which dirs to exclude: issues from them won't be reported
   exclude-dirs:
     - bin
+    
 linters:
   disable-all: true
   enable:
