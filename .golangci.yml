@@ -21,7 +21,7 @@ linters:
     - fatcontext
     - ginkgolinter
     - gocritic
-    - govet
+    - govet        
     - loggercheck
     - misspell
     - perfsprint
@@ -36,10 +36,9 @@ linters:
     - ineffassign
     - nakedret
     - prealloc
-    - typecheck
     - unparam
     - unused
-    
+
 linters-settings:
   revive:
     rules:
