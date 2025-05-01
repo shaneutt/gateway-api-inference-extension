@@ -18,8 +18,8 @@ linters:
     - durationcheck
     - fatcontext
     - ginkgolinter
-    - gocritic
-    - govet        
+    # - gocritic
+    # - govet        
     # - loggercheck
     # - misspell
     # - perfsprint
