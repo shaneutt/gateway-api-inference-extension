@@ -30,6 +30,7 @@ export POOL_NAME="${POOL_NAME:-vllm-llama3-8b-instruct}"
 
 # Set the model name to deploy
 export MODEL_NAME="${MODEL_NAME:-meta-llama/Llama-3.1-8B-Instruct}"
+
 # ------------------------------------------------------------------------------
 # Setup & Requirement Checks
 # ------------------------------------------------------------------------------
@@ -109,7 +110,7 @@ kustomize build deploy/components/crds-gateway-api |
 kustomize build deploy/components/crds-gie |
 	kubectl --context ${KUBE_CONTEXT} apply --server-side --force-conflicts -f -
 
-kustomize build --enable-helm deploy/components/crds-kgateway |
+kustomize build --enable-helm deploy/components/crds-istio |
 	kubectl --context ${KUBE_CONTEXT} apply --server-side --force-conflicts -f -
 
 # ------------------------------------------------------------------------------
@@ -117,18 +118,18 @@ kustomize build --enable-helm deploy/components/crds-kgateway |
 # ------------------------------------------------------------------------------
 
 # Deploy the environment to the "default" namespace
-kustomize build --enable-helm deploy/environments/dev/kind-kgateway \
+kustomize build --enable-helm deploy/environments/dev/kind-istio \
 	| envsubst | sed "s/REPLACE_NAMESPACE/${PROJECT_NAMESPACE}/gI" \
 	| kubectl --context ${KUBE_CONTEXT} apply -f -
 
 # Wait for all control-plane pods to be ready
-kubectl --context ${KUBE_CONTEXT} -n kgateway-system wait --for=condition=Ready --all pods --timeout=360s
+kubectl --context ${KUBE_CONTEXT} -n istio-system wait --for=condition=Ready --all pods --timeout=360s
 
 # Wait for all pods to be ready
 kubectl --context ${KUBE_CONTEXT} wait --for=condition=Ready --all pods --timeout=300s
 
 # Wait for the gateway to be ready
-kubectl --context ${KUBE_CONTEXT} wait gateway/inference-gateway --for=condition=Programmed --timeout=60s
+kubectl --context ${KUBE_CONTEXT} wait gateway/inference-gateway-istio --for=condition=Programmed --timeout=60s
 
 cat <<EOF
 -----------------------------------------
