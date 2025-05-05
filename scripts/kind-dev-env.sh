@@ -119,7 +119,7 @@ kustomize build --enable-helm deploy/components/crds-istio |
 
 # Deploy the environment to the "default" namespace
 kustomize build --enable-helm deploy/environments/dev/kind-istio \
-	| envsubst | sed "s/REPLACE_NAMESPACE/${PROJECT_NAMESPACE}/gI" \
+	| envsubst \${POOL_NAME} | sed "s/REPLACE_NAMESPACE/${PROJECT_NAMESPACE}/gI" \
 	| kubectl --context ${KUBE_CONTEXT} apply -f -
 
 # Wait for all control-plane pods to be ready
