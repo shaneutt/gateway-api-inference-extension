@@ -111,6 +111,10 @@ func (s *Scheduler) Schedule(ctx context.Context, req *types.LLMRequest) (*types
 	sCtx := types.NewSchedulingContext(ctx, req, types.ToSchedulerPodMetrics(s.datastore.PodGetAll()))
 	loggerDebug.Info(fmt.Sprintf("Scheduling a request, Metrics: %+v", sCtx.PodsSnapshot))
 
+	return s.ScheduleWithContext(sCtx, req)
+}
+
+func (s *Scheduler) ScheduleWithContext(sCtx *types.SchedulingContext, req *types.LLMRequest) (*types.Result, error) {
 	s.runPreSchedulePlugins(sCtx)
 
 	pods := s.runFilterPlugins(sCtx)
