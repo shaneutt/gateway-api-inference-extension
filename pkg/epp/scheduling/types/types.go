@@ -59,10 +59,9 @@ type ScoredPod struct {
 // SchedulingContext holds contextual information during a scheduling operation.
 type SchedulingContext struct {
 	context.Context
-	Logger         logr.Logger
-	Req            *LLMRequest
-	PodsSnapshot   []Pod
-	MutatedHeaders map[string]string
+	Logger       logr.Logger
+	Req          *LLMRequest
+	PodsSnapshot []Pod
 }
 
 func (pm *PodMetrics) String() string {
@@ -88,11 +87,10 @@ type PodMetrics struct {
 func NewSchedulingContext(ctx context.Context, req *LLMRequest, pods []Pod) *SchedulingContext {
 	logger := log.FromContext(ctx).WithValues("request", req)
 	return &SchedulingContext{
-		Context:        ctx,
-		Logger:         logger,
-		Req:            req,
-		PodsSnapshot:   pods,
-		MutatedHeaders: make(map[string]string),
+		Context:      ctx,
+		Logger:       logger,
+		Req:          req,
+		PodsSnapshot: pods,
 	}
 }
 
@@ -106,6 +104,5 @@ func ToSchedulerPodMetrics(pods []backendmetrics.PodMetrics) []Pod {
 
 // Result captures the scheduler result.
 type Result struct {
-	TargetPod      Pod
-	MutatedHeaders map[string]string
+	TargetPod Pod
 }
