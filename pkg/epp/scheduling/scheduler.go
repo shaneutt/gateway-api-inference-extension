@@ -128,7 +128,6 @@ func (s *Scheduler) ScheduleWithContext(sCtx *types.SchedulingContext, req *type
 
 	s.runPostSchedulePlugins(sCtx, result)
 
-	result.MutatedHeaders = sCtx.MutatedHeaders
 	return result, nil
 }
 
